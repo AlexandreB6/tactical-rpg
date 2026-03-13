@@ -5,7 +5,7 @@ const UI_PATH = "res://assets/Tiny Swords/UI Elements/UI Elements/"
 
 func _ready() -> void:
 	var theme = _build_theme()
-	ThemeDB.project_theme = theme
+	get_tree().root.theme = theme
 
 func _build_theme() -> Theme:
 	var theme = Theme.new()
