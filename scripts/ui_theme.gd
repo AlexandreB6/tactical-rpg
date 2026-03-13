@@ -72,7 +72,6 @@ func _nine_slice(path: String, left: int, top: int, right: int, bottom: int) -> 
 	s.texture_margin_bottom = bottom
 	s.axis_stretch_horizontal = StyleBoxTexture.AXIS_STRETCH_MODE_TILE_FIT
 	s.axis_stretch_vertical = StyleBoxTexture.AXIS_STRETCH_MODE_TILE_FIT
-	s.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
 	s.content_margin_left = 14
 	s.content_margin_right = 14
 	s.content_margin_top = 14
