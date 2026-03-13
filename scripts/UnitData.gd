@@ -23,3 +23,9 @@ class_name UnitData
 @export var sprite_scale_factor: float = 1.0
 @export var projectile_texture: Texture2D = null
 @export var avatar_texture: Texture2D = null
+
+enum ClassType { PHYSICAL, MAGIC }
+@export var class_type: ClassType = ClassType.PHYSICAL
+@export var spells: Array[SpellData] = []
+@export var sprite_cast_texture: Texture2D = null
+@export var sprite_cast_hframes: int = 1

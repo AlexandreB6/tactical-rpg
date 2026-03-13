@@ -66,11 +66,26 @@ Format JSON :
 
 `World.level_path` est `@export` → modifiable dans l'Inspector pour changer de niveau.
 
+### Système de sorts
+
+Les sorts sont définis comme `SpellData` resources dans `res://data/spells/`. Chaque sort a :
+- `spell_name`, `description`, `power` (dégâts ou soin)
+- `spell_range`, `min_spell_range` (0 = peut cibler soi-même)
+- `target_type` : `ALLY` (même équipe) ou `ENEMY`
+- `needs_los` : vérifie la ligne de vue
+- `effect_texture` + `effect_hframes` : sprite sheet FX animé sur la cible
+
+Les unités ont un `class_type` (`PHYSICAL` ou `MAGIC`) et un tableau `spells: Array[SpellData]`.
+Lancer un sort consomme l'action (`has_acted = true`), comme une attaque physique.
+
+L'IA ennemie utilise les sorts : soin si un allié < 70% HP, sort offensif si dégâts >= attaque physique.
+
 ### Ajouter une nouvelle unité
 
 1. Créer `res://data/units/nom.tres` (type `UnitData`) via l'éditeur Godot
 2. Remplir les champs dans l'Inspector (team = `"player"` ou `"enemy"`)
-3. Ajouter l'unité dans le JSON du niveau : `{ "data": "nom", "pos": [q, r] }`
+3. Pour une unité magique : `class_type = MAGIC`, ajouter des sorts dans `spells[]`, fournir `sprite_cast_texture`
+4. Ajouter l'unité dans le JSON du niveau : `{ "data": "nom", "pos": [q, r] }`
 
 ### UI
 
@@ -89,7 +104,8 @@ Toutes les UI sont des `CanvasLayer` enfants de `World` :
 ## État actuel et TODO
 
 - ~~Les spawns sont hardcodés dans `World._ready()`~~ → **FAIT** : chargement depuis JSON (`data/levels/level_01.json`)
-- ~~Refactoring `_handle_click`~~ → **FAIT** : machine d'état (IDLE, ACTION_BAR, SELECTING_MOVE, SELECTING_ATTACK)
+- ~~Refactoring `_handle_click`~~ → **FAIT** : machine d'état (IDLE, ACTION_BAR, SELECTING_MOVE, SELECTING_ATTACK, SELECTING_SPELL_TARGET)
+- ~~Système de sorts~~ → **FAIT** : SpellData resource, Monk (joueur + ennemi), boutons sorts dynamiques, IA sorts
 - ~~Système de murs par comparaison de voisins~~ → **FAIT** : hex blocks solides (5 polygones/hex, z_index = r*2 + q%2)
 - ~~Ligne de vue~~ → **FAIT** : `has_line_of_sight()` via lerp cubique, Forêt/Montagne bloquent la LOS
 - **Bug** : `pixel_to_hex()` ne compense pas l'élévation visuelle → clics décalés sur terrains élevés (collines, etc.)

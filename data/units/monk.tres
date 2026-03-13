@@ -1,0 +1,27 @@
+[gd_resource type="Resource" script_class="UnitData" format=3]
+
+[ext_resource type="Script" uid="uid://bgr051ywya2wd" path="res://scripts/UnitData.gd" id="1_script"]
+[ext_resource type="Texture2D" path="res://assets/Tiny Swords/Units/Blue Units/Monk/Idle.png" id="2_idle"]
+[ext_resource type="Texture2D" path="res://assets/Tiny Swords/Units/Blue Units/Monk/Run.png" id="3_run"]
+[ext_resource type="Texture2D" path="res://assets/Tiny Swords/Units/Blue Units/Monk/Heal.png" id="4_cast"]
+[ext_resource type="Resource" path="res://data/spells/heal.tres" id="5_heal"]
+[ext_resource type="Resource" path="res://data/spells/fireball.tres" id="6_fireball"]
+
+[resource]
+script = ExtResource("1_script")
+sprite_texture = ExtResource("2_idle")
+sprite_hframes = 6
+sprite_run_texture = ExtResource("3_run")
+sprite_run_hframes = 4
+sprite_cast_texture = ExtResource("4_cast")
+sprite_cast_hframes = 11
+unit_name = "Moine"
+hp = 8
+attack = 2
+defense = 1
+move_range = 3
+description = "\"La lumière guide mes pas\""
+initiative = 5
+class_type = 1
+spells = [ExtResource("5_heal"), ExtResource("6_fireball")]
+metadata/_custom_type_script = "uid://bgr051ywya2wd"

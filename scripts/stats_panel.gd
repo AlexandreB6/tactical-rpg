@@ -31,7 +31,16 @@ func show_stats(unit: Unit, terrain_text: String = "") -> void:
 	terrain_label.text = terrain_text
 	terrain_label.visible = terrain_text != ""
 	move_label.text = "Mouvement : " + str(unit.move_range)
-	description_label.text = unit.description
+	var class_text = "Moine (Magie)" if unit.class_type == 1 else "Guerrier (Physique)"
+	var spells_text = ""
+	for spell in unit.spells:
+		if spells_text != "":
+			spells_text += ", "
+		spells_text += spell.spell_name + " (portée " + str(spell.spell_range) + ")"
+	var desc = unit.description
+	if spells_text != "":
+		desc += "\nClasse : " + class_text + "\nSorts : " + spells_text
+	description_label.text = desc
 	if unit.avatar_texture:
 		avatar.texture = unit.avatar_texture
 	else:

@@ -28,6 +28,13 @@
 			]
 		},
 		{
+			"data": "monk",
+			"pos": [
+				2,
+				3
+			]
+		},
+		{
 			"data": "enemy_warrior",
 			"pos": [
 				7,
@@ -39,6 +46,13 @@
 			"pos": [
 				8,
 				6
+			]
+		},
+		{
+			"data": "enemy_monk",
+			"pos": [
+				7,
+				5
 			]
 		}
 	]

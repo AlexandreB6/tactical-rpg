@@ -22,6 +22,8 @@ var team: String = "player"
 var description: String = ""
 var initiative: int = 5
 var avatar_texture: Texture2D = null
+var class_type: int = 0  # 0=PHYSICAL, 1=MAGIC
+var spells: Array[SpellData] = []
 
 # --- État en jeu ---
 var grid_pos: Vector2i = Vector2i(0, 0)
@@ -51,6 +53,8 @@ var _attack_texture: Texture2D = null
 var _attack_hframes: int = 1
 var _guard_texture: Texture2D = null
 var _guard_hframes: int = 1
+var _cast_texture: Texture2D = null
+var _cast_hframes: int = 1
 var _projectile_texture: Texture2D = null
 var _frame_count: int = 1
 var _frame_timer: float = 0.0
@@ -96,8 +100,12 @@ func setup(data: UnitData, p_grid_pos: Vector2i, hex_grid: Node2D) -> void:
 	_attack_hframes = data.sprite_attack_hframes
 	_guard_texture = data.sprite_guard_texture
 	_guard_hframes = data.sprite_guard_hframes
+	_cast_texture = data.sprite_cast_texture
+	_cast_hframes = data.sprite_cast_hframes
 	_projectile_texture = data.projectile_texture
 	_sprite_scale_factor = data.sprite_scale_factor
+	class_type = data.class_type
+	spells = data.spells.duplicate()
 	_setup_body(data)
 	name_label.visible = false
 	_update_hp_bar()
@@ -200,6 +208,41 @@ func play_attack_anim(target_pos: Vector2 = Vector2.ZERO) -> void:
 		)
 	await get_tree().create_timer(anim_duration).timeout
 	_switch_to_idle()
+
+# Joue l'animation de cast (sort) une fois puis revient à idle
+func play_cast_anim() -> void:
+	if _cast_texture == null:
+		# Fallback : petit bounce
+		var tween = create_tween()
+		tween.tween_property(body, "position:y", body.position.y - 8.0, 0.1)
+		tween.tween_property(body, "position:y", -20.0, 0.1)
+		await tween.finished
+		return
+	_switch_sprite(_cast_texture, _cast_hframes)
+	_playing_oneshot = true
+	_oneshot_frame_duration = ATTACK_FRAME_DURATION
+	var anim_duration = ATTACK_FRAME_DURATION * _cast_hframes
+	await get_tree().create_timer(anim_duration).timeout
+	_switch_to_idle()
+
+# Restaure des HP (plafonné à max_hp) avec un flash vert
+func heal(amount: int) -> void:
+	hp = min(hp + amount, max_hp)
+	_update_hp_bar()
+	# Flash vert (soin)
+	body.modulate = Color(0.5, 2.0, 0.5, 1.0)
+	var tween = create_tween()
+	tween.tween_property(body, "modulate", Color(1, 1, 1, 1), 0.3)
+	await tween.finished
+
+# Vérifie si un sort peut être lancé depuis from vers target_pos
+func can_cast_spell_on(spell: SpellData, from: Vector2i, target_pos: Vector2i, p_hex_grid: Node2D) -> bool:
+	var dist = p_hex_grid.hex_distance(from, target_pos)
+	if dist < spell.min_spell_range or dist > spell.spell_range:
+		return false
+	if spell.needs_los and not p_hex_grid.has_line_of_sight(from, target_pos):
+		return false
+	return true
 
 # Crée un projectile qui vole en cloche vers la cible
 func _fire_projectile(target_pos: Vector2) -> void:

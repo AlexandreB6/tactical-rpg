@@ -18,7 +18,7 @@ const UnitScene = preload("res://scenes/units/Unit.tscn")
 @export var level_path: String = "res://data/levels/level_01.json"
 
 # --- Machine d'état ---
-enum State { IDLE, ACTION_BAR, SELECTING_MOVE, SELECTING_ATTACK }
+enum State { IDLE, ACTION_BAR, SELECTING_MOVE, SELECTING_ATTACK, SELECTING_SPELL_TARGET }
 var state: State = State.IDLE
 
 # L'unité sélectionnée pour agir
@@ -37,6 +37,7 @@ var _cursor_attack: ImageTexture
 # Cache des cases accessibles (BFS) pour l'unité sélectionnée
 var _cached_reachable: Dictionary = {}
 # Tooltip terrain (clic droit sur case vide)
+var current_spell: SpellData = null
 var _terrain_tooltip: CanvasLayer = null
 var _terrain_tooltip_panel: PanelContainer = null
 var _terrain_tooltip_label: Label = null
@@ -61,6 +62,7 @@ func _ready() -> void:
 	action_bar.end_turn_requested.connect(_on_end_turn_requested)
 	action_bar.cancel_requested.connect(_on_cancel_requested)
 	action_bar.defend_requested.connect(_on_defend_requested)
+	action_bar.spell_requested.connect(_on_spell_requested)
 	game_manager.player_phase_started.connect(_on_player_phase_started)
 	game_manager.enemy_phase_started.connect(_on_enemy_phase_started)
 	game_manager.start_round()
@@ -308,6 +310,8 @@ func _process(_delta: float) -> void:
 			_update_cursor_selecting_move(cell)
 		State.SELECTING_ATTACK:
 			_update_cursor_selecting_attack(cell)
+		State.SELECTING_SPELL_TARGET:
+			_update_cursor_selecting_spell(cell)
 		_:
 			_set_cursor(DisplayServer.CURSOR_ARROW)
 
@@ -389,6 +393,8 @@ func _handle_click(cell: Vector2i) -> void:
 			_handle_move_click(clicked_unit, cell)
 		State.SELECTING_ATTACK:
 			_handle_attack_click(clicked_unit)
+		State.SELECTING_SPELL_TARGET:
+			_handle_spell_target_click(clicked_unit, cell)
 
 # Clic droit : inspection des stats ou tooltip terrain
 func _handle_right_click(cell: Vector2i) -> void:
@@ -417,7 +423,8 @@ func _handle_idle_click(clicked_unit: Unit) -> void:
 	selected_unit = clicked_unit
 	_update_reachable_cache()
 	clicked_unit.set_highlight("active")
-	action_bar.update_buttons(clicked_unit.has_moved)
+	action_bar.setup_for_unit(clicked_unit)
+	action_bar.update_buttons(clicked_unit.has_moved, clicked_unit.has_acted)
 	action_bar.show_bar()
 	stats_panel.show_stats(clicked_unit, _get_terrain_text(clicked_unit.grid_pos))
 	state = State.ACTION_BAR
@@ -429,7 +436,7 @@ func _handle_move_click(clicked_unit: Unit, cell: Vector2i) -> void:
 		# Clic sur soi-même → retour à la barre
 		_show_selection_highlights(selected_unit)
 		state = State.ACTION_BAR
-		action_bar.update_buttons(selected_unit.has_moved)
+		action_bar.update_buttons(selected_unit.has_moved, selected_unit.has_acted)
 		action_bar.show_bar()
 		return
 	if clicked_unit != null and clicked_unit.team == "player" and not clicked_unit.has_acted:
@@ -444,7 +451,7 @@ func _handle_move_click(clicked_unit: Unit, cell: Vector2i) -> void:
 		# Hors portée → retour à la barre d'actions
 		_show_selection_highlights(selected_unit)
 		state = State.ACTION_BAR
-		action_bar.update_buttons(selected_unit.has_moved)
+		action_bar.update_buttons(selected_unit.has_moved, selected_unit.has_acted)
 		action_bar.show_bar()
 
 # Utilisé par le bouton "Attaquer" (mode sélection explicite)
@@ -460,6 +467,44 @@ func _handle_attack_click(clicked_unit: Unit) -> void:
 		_show_selection_highlights(selected_unit)
 		state = State.ACTION_BAR
 		action_bar.show_bar()
+
+# Clic en mode sélection de cible de sort
+func _handle_spell_target_click(clicked_unit: Unit, cell: Vector2i) -> void:
+	if clicked_unit == null or current_spell == null:
+		_show_selection_highlights(selected_unit)
+		state = State.ACTION_BAR
+		action_bar.show_bar()
+		current_spell = null
+		return
+	# Vérifier que la cible est du bon type
+	var valid = false
+	if current_spell.target_type == SpellData.TargetType.ALLY and clicked_unit.team == selected_unit.team:
+		valid = true
+	elif current_spell.target_type == SpellData.TargetType.ENEMY and clicked_unit.team != selected_unit.team:
+		valid = true
+	if valid and selected_unit.can_cast_spell_on(current_spell, selected_unit.grid_pos, clicked_unit.grid_pos, hex_grid):
+		await _execute_spell(selected_unit, clicked_unit, current_spell)
+	else:
+		_show_selection_highlights(selected_unit)
+		state = State.ACTION_BAR
+		action_bar.show_bar()
+		current_spell = null
+
+func _update_cursor_selecting_spell(cell: Vector2i) -> void:
+	if current_spell == null:
+		_set_cursor(DisplayServer.CURSOR_ARROW)
+		return
+	var hovered = _get_unit_at(cell)
+	if hovered != null:
+		var is_valid_target = false
+		if current_spell.target_type == SpellData.TargetType.ALLY and hovered.team == selected_unit.team:
+			is_valid_target = true
+		elif current_spell.target_type == SpellData.TargetType.ENEMY and hovered.team != selected_unit.team:
+			is_valid_target = true
+		if is_valid_target and selected_unit.can_cast_spell_on(current_spell, selected_unit.grid_pos, hovered.grid_pos, hex_grid):
+			_set_cursor(DisplayServer.CURSOR_CROSS)
+			return
+	_set_cursor(DisplayServer.CURSOR_ARROW)
 
 # --- Actions ---
 
@@ -481,7 +526,7 @@ func _execute_move(unit: Unit, cell: Vector2i) -> void:
 	unit.has_moved = true
 	selected_unit = unit
 	state = State.ACTION_BAR
-	action_bar.update_buttons(true)
+	action_bar.update_buttons(true, unit.has_acted)
 	action_bar.show_bar()
 	stats_panel.show_stats(unit, _get_terrain_text(unit.grid_pos))
 	_show_selection_highlights(unit)
@@ -499,6 +544,47 @@ func _execute_attack(attacker: Unit, target: Unit) -> void:
 	game_manager.check_victory()
 	game_manager.notify_unit_done(attacker)
 
+func _execute_spell(caster: Unit, target: Unit, spell: SpellData) -> void:
+	_clear_ui_state()
+	current_spell = null
+	is_animating = true
+	await caster.play_cast_anim()
+	await _play_spell_effect(target, spell)
+	if spell.target_type == SpellData.TargetType.ALLY:
+		await target.heal(spell.power)
+		combat_log.add_entry(caster.unit_name + " lance " + spell.spell_name + " sur " + target.unit_name + " (+" + str(spell.power) + " HP)")
+	else:
+		var height_diff = hex_grid.get_height_at(caster.grid_pos) - hex_grid.get_height_at(target.grid_pos)
+		var terrain_def = hex_grid.get_terrain_def_bonus(target.grid_pos)
+		var damage = max(1, spell.power - target.get_effective_defense() - terrain_def)
+		combat_log.add_entry(caster.unit_name + " lance " + spell.spell_name + " sur " + target.unit_name + " (-" + str(damage) + " HP)")
+		await target.take_damage(damage)
+	is_animating = false
+	game_manager.check_victory()
+	game_manager.notify_unit_done(caster)
+
+func _play_spell_effect(target: Unit, spell: SpellData) -> void:
+	if spell.effect_texture == null:
+		return
+	var effect = Sprite2D.new()
+	effect.texture = spell.effect_texture
+	effect.hframes = spell.effect_hframes
+	effect.frame = 0
+	effect.position = target.position + Vector2(0, -20)
+	effect.z_index = 999
+	effect.z_as_relative = false
+	# Scale l'effet pour une taille raisonnable
+	var tex_size = spell.effect_texture.get_size()
+	var frame_width = tex_size.x / spell.effect_hframes
+	var scale_factor = 100.0 / max(frame_width, tex_size.y)
+	effect.scale = Vector2(scale_factor, scale_factor)
+	add_child(effect)
+	# Animer les frames
+	for i in range(spell.effect_hframes):
+		effect.frame = i
+		await get_tree().create_timer(0.08).timeout
+	effect.queue_free()
+
 # --- Callbacks barre d'actions ---
 
 func _on_move_requested() -> void:
@@ -506,6 +592,26 @@ func _on_move_requested() -> void:
 		return
 	state = State.SELECTING_MOVE
 	hex_grid.highlight_cells(selected_unit.grid_pos, selected_unit.move_range, _get_blocked_cells(selected_unit))
+
+func _on_spell_requested(spell_index: int) -> void:
+	if selected_unit == null or spell_index >= selected_unit.spells.size():
+		return
+	current_spell = selected_unit.spells[spell_index]
+	state = State.SELECTING_SPELL_TARGET
+	# Highlight les cibles valides
+	hex_grid.clear_highlights()
+	var highlight_color = hex_grid.HIGHLIGHT_MOVE if current_spell.target_type == SpellData.TargetType.ALLY else hex_grid.HIGHLIGHT_ATTACK
+	for unit in units_node.get_children():
+		if unit.is_queued_for_deletion():
+			continue
+		var valid = false
+		if current_spell.target_type == SpellData.TargetType.ALLY and unit.team == selected_unit.team:
+			valid = true
+		elif current_spell.target_type == SpellData.TargetType.ENEMY and unit.team != selected_unit.team:
+			valid = true
+		if valid and selected_unit.can_cast_spell_on(current_spell, selected_unit.grid_pos, unit.grid_pos, hex_grid):
+			if hex_grid.cells.has(unit.grid_pos):
+				hex_grid.cells[unit.grid_pos].color = highlight_color
 
 func _on_attack_requested() -> void:
 	if selected_unit == null:
@@ -593,6 +699,20 @@ func _show_selection_highlights(unit: Unit) -> void:
 					if hex_grid.cells.has(enemy.grid_pos):
 						hex_grid.cells[enemy.grid_pos].color = hex_grid.HIGHLIGHT_ATTACK
 					break
+		# Cibles de sorts
+		for spell in unit.spells:
+			for other in units_node.get_children():
+				if other.is_queued_for_deletion():
+					continue
+				var valid = false
+				if spell.target_type == SpellData.TargetType.ALLY and other.team == unit.team:
+					valid = true
+				elif spell.target_type == SpellData.TargetType.ENEMY and other.team != unit.team:
+					valid = true
+				if valid and unit.can_cast_spell_on(spell, unit.grid_pos, other.grid_pos, hex_grid):
+					if hex_grid.cells.has(other.grid_pos):
+						var color = hex_grid.HIGHLIGHT_MOVE if spell.target_type == SpellData.TargetType.ALLY else hex_grid.HIGHLIGHT_ATTACK
+						hex_grid.cells[other.grid_pos].color = color
 
 # Zones complètes pour planification (clic droit) — ignore has_moved
 func _show_inspect_highlights(unit: Unit) -> void:
@@ -641,6 +761,7 @@ func _clear_ui_state() -> void:
 	action_bar.hide_bar()
 	stats_panel.hide()
 	selected_unit = null
+	current_spell = null
 	_cached_reachable = {}
 	state = State.IDLE
 
