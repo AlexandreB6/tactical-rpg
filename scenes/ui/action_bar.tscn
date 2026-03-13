@@ -24,20 +24,25 @@ theme_override_constants/separation = 6
 
 [node name="MoveButton" type="Button" parent="PanelContainer/HBoxContainer"]
 custom_minimum_size = Vector2(86, 64)
+theme_type_variation = "BtnGhost"
 layout_mode = 2
 
 [node name="AttackButton" type="Button" parent="PanelContainer/HBoxContainer"]
 custom_minimum_size = Vector2(86, 64)
+theme_type_variation = "BtnGhost"
 layout_mode = 2
 
 [node name="DefendButton" type="Button" parent="PanelContainer/HBoxContainer"]
 custom_minimum_size = Vector2(86, 64)
+theme_type_variation = "BtnGhost"
 layout_mode = 2
 
 [node name="EndTurnButton" type="Button" parent="PanelContainer/HBoxContainer"]
 custom_minimum_size = Vector2(86, 64)
+theme_type_variation = "BtnGhost"
 layout_mode = 2
 
 [node name="CancelButton" type="Button" parent="PanelContainer/HBoxContainer"]
 custom_minimum_size = Vector2(86, 64)
+theme_type_variation = "BtnGhost"
 layout_mode = 2

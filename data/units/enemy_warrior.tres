@@ -5,6 +5,7 @@
 [ext_resource type="Texture2D" path="res://assets/Tiny Swords/Units/Black Units/Warrior/Warrior_Run.png" id="3_run"]
 [ext_resource type="Texture2D" path="res://assets/Tiny Swords/Units/Black Units/Warrior/Warrior_Attack1.png" id="4_attack"]
 [ext_resource type="Texture2D" path="res://assets/Tiny Swords/Units/Black Units/Warrior/Warrior_Guard.png" id="5_guard"]
+[ext_resource type="Texture2D" path="res://assets/Tiny Swords/UI Elements/UI Elements/Human Avatars/Avatars_21.png" id="6_avatar"]
 
 [resource]
 script = ExtResource("1_aq63c")
@@ -22,4 +23,5 @@ attack = 2
 defense = 0
 team = "enemy"
 initiative = 7
+avatar_texture = ExtResource("6_avatar")
 metadata/_custom_type_script = "uid://bgr051ywya2wd"

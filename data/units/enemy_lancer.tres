@@ -4,6 +4,7 @@
 [ext_resource type="Texture2D" path="res://assets/Tiny Swords/Units/Black Units/Lancer/Lancer_Idle.png" id="2_idle"]
 [ext_resource type="Texture2D" path="res://assets/Tiny Swords/Units/Black Units/Lancer/Lancer_Run.png" id="3_run"]
 [ext_resource type="Texture2D" path="res://assets/Tiny Swords/Units/Black Units/Lancer/Lancer_Right_Attack.png" id="4_attack"]
+[ext_resource type="Texture2D" path="res://assets/Tiny Swords/UI Elements/UI Elements/Human Avatars/Avatars_22.png" id="5_avatar"]
 
 [resource]
 script = ExtResource("1_script")
@@ -22,4 +23,5 @@ move_range = 3
 team = "enemy"
 initiative = 4
 attack_range = 2
+avatar_texture = ExtResource("5_avatar")
 metadata/_custom_type_script = "uid://bgr051ywya2wd"

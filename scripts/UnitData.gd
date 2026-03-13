@@ -22,3 +22,4 @@ class_name UnitData
 @export var sprite_guard_hframes: int = 1
 @export var sprite_scale_factor: float = 1.0
 @export var projectile_texture: Texture2D = null
+@export var avatar_texture: Texture2D = null

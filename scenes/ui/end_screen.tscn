@@ -41,7 +41,7 @@ layout_mode = 2
 theme_override_font_sizes/font_size = 32
 text = "Replay"
 
-[node name="MenuButton" type="Button" parent="Background/VBoxContainer"]
+[node name="MenuButton" type="Button" parent="Background/VBoxContainer" unique_id=276822307]
 layout_mode = 2
 theme_override_font_sizes/font_size = 24
 text = "Menu principal"

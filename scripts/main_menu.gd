@@ -1,6 +1,8 @@
 # Menu principal — sélection de niveau ou accès à l'éditeur
 extends Control
 
+const UI_PATH = "res://assets/Tiny Swords/UI Elements/UI Elements/"
+
 var _level_list: ItemList
 var _play_btn: Button
 var _editor_btn: Button
@@ -32,19 +34,58 @@ func _build_ui() -> void:
 	var vbox = VBoxContainer.new()
 	vbox.add_theme_constant_override("separation", 12)
 	margin.add_child(vbox)
-	# Titre
+	# Titre avec Banner parchemin reconstruit
+	var title_container = CenterContainer.new()
+	vbox.add_child(title_container)
+	var title_banner = NinePatchRect.new()
+	title_banner.texture = load("res://assets/ui_composed/Banner_stitched.png")
+	title_banner.patch_margin_left = 100
+	title_banner.patch_margin_top = 68
+	title_banner.patch_margin_right = 84
+	title_banner.patch_margin_bottom = 111
+	title_banner.axis_stretch_horizontal = NinePatchRect.AXIS_STRETCH_MODE_STRETCH
+	title_banner.axis_stretch_vertical = NinePatchRect.AXIS_STRETCH_MODE_STRETCH
+	title_banner.custom_minimum_size = Vector2(420, 100)
+	title_container.add_child(title_banner)
 	var title = Label.new()
 	title.text = "Tactical RPG"
 	title.add_theme_font_size_override("font_size", 32)
+	title.add_theme_color_override("font_color", Color(0.25, 0.2, 0.15))
+	title.add_theme_color_override("font_shadow_color", Color(0.6, 0.5, 0.35, 0.4))
 	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	vbox.add_child(title)
+	title.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	title.set_anchors_preset(Control.PRESET_FULL_RECT)
+	title.offset_top = -20
+	title.offset_bottom = -20
+	title_banner.add_child(title)
+	# Sous-titre avec Sword banner bleu reconstruit
+	var subtitle_container = CenterContainer.new()
+	vbox.add_child(subtitle_container)
+	var sword_banner = NinePatchRect.new()
+	sword_banner.texture = load("res://assets/ui_composed/Sword_blue.png")
+	sword_banner.patch_margin_left = 105
+	sword_banner.patch_margin_top = 10
+	sword_banner.patch_margin_right = 92
+	sword_banner.patch_margin_bottom = 10
+	sword_banner.axis_stretch_horizontal = NinePatchRect.AXIS_STRETCH_MODE_STRETCH
+	sword_banner.axis_stretch_vertical = NinePatchRect.AXIS_STRETCH_MODE_STRETCH
+	sword_banner.custom_minimum_size = Vector2(420, 80)
+	subtitle_container.add_child(sword_banner)
+	var subtitle_margin = MarginContainer.new()
+	subtitle_margin.set_anchors_preset(Control.PRESET_FULL_RECT)
+	subtitle_margin.add_theme_constant_override("margin_left", 110)
+	subtitle_margin.add_theme_constant_override("margin_right", 95)
+	sword_banner.add_child(subtitle_margin)
 	var subtitle = Label.new()
 	subtitle.text = "Choisir une mission"
 	subtitle.add_theme_font_size_override("font_size", 16)
+	subtitle.add_theme_color_override("font_color", Color(0.25, 0.2, 0.15))
+	subtitle.add_theme_color_override("font_shadow_color", Color(0.6, 0.5, 0.35, 0.3))
 	subtitle.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	subtitle.add_theme_color_override("font_color", Color(0.75, 0.7, 0.6))
-	vbox.add_child(subtitle)
-	vbox.add_child(HSeparator.new())
+	subtitle.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	subtitle.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	subtitle.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	subtitle_margin.add_child(subtitle)
 	# Liste des niveaux
 	_level_list = ItemList.new()
 	_level_list.custom_minimum_size.y = 200
@@ -58,18 +99,21 @@ func _build_ui() -> void:
 	vbox.add_child(btn_hbox)
 	_play_btn = Button.new()
 	_play_btn.text = "Jouer"
-	_play_btn.custom_minimum_size = Vector2(140, 40)
+	_play_btn.theme_type_variation = "BtnPrimary"
+	_play_btn.custom_minimum_size = Vector2(200, 90)
 	_play_btn.pressed.connect(_on_play_pressed)
 	btn_hbox.add_child(_play_btn)
 	_editor_btn = Button.new()
 	_editor_btn.text = "Editeur de niveau"
-	_editor_btn.custom_minimum_size = Vector2(180, 40)
+	_editor_btn.theme_type_variation = "BtnPrimary"
+	_editor_btn.custom_minimum_size = Vector2(250, 90)
 	_editor_btn.pressed.connect(_on_editor_pressed)
 	btn_hbox.add_child(_editor_btn)
 	# Quitter
 	var quit_btn = Button.new()
 	quit_btn.text = "Quitter"
-	quit_btn.custom_minimum_size = Vector2(100, 40)
+	quit_btn.theme_type_variation = "BtnDanger"
+	quit_btn.custom_minimum_size = Vector2(180, 90)
 	quit_btn.pressed.connect(func(): get_tree().quit())
 	btn_hbox.add_child(quit_btn)
 

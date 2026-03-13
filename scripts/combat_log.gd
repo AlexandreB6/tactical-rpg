@@ -13,6 +13,8 @@ const MAX_LINES = 8
 var minimized: bool = false
 	
 func _ready() -> void:
+	# Le thème root ne se propage pas à travers CanvasLayer, on l'applique manuellement
+	panel.theme = UITheme.current_theme
 	log_label.text = ""
 	toggle_button.pressed.connect(_on_toggle_pressed)
 	# Démarre minimisé

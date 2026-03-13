@@ -21,6 +21,7 @@ var min_attack_range: int = 1
 var team: String = "player"
 var description: String = ""
 var initiative: int = 5
+var avatar_texture: Texture2D = null
 
 # --- État en jeu ---
 var grid_pos: Vector2i = Vector2i(0, 0)
@@ -76,6 +77,7 @@ func setup(data: UnitData, p_grid_pos: Vector2i, hex_grid: Node2D) -> void:
 	initiative = data.initiative
 	team = data.team
 	description = data.description
+	avatar_texture = data.avatar_texture
 	grid_pos = p_grid_pos
 	_hex_grid = hex_grid
 	iso_y_scale = hex_grid.ISO_Y_SCALE
