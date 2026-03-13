@@ -78,7 +78,8 @@ func _load_level(path: String) -> void:
 	var terrain_rows: Array = data["terrain"]
 	var width: int = data.get("grid_width", 10)
 	var height: int = data.get("grid_height", 8)
-	await hex_grid.load_terrain(terrain_rows, width, height)
+	var forest_rows: Array = data.get("forest", [])
+	await hex_grid.load_terrain(terrain_rows, width, height, forest_rows)
 	# Unités
 	for unit_info in data["units"]:
 		var unit_data_path = "res://data/units/" + unit_info["data"] + ".tres"

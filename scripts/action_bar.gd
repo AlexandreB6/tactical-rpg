@@ -21,6 +21,7 @@ const ICONS = {
 }
 
 func _ready() -> void:
+	$PanelContainer.theme = UITheme.current_theme
 	hide()
 	_setup_icon_button(move_button, "Déplacer", ICONS["move"])
 	_setup_icon_button(attack_button, "Attaquer", ICONS["attack"])

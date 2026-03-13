@@ -83,14 +83,18 @@ func _generate_empty_grid() -> void:
 
 func _regenerate_grid() -> void:
 	var rows: Array = []
+	var frows: Array = []
 	for r in range(grid_height):
 		var row = ""
+		var frow = ""
 		for q in range(grid_width):
 			var cell = Vector2i(q, r)
 			var terrain = hex_grid.terrain_map.get(cell, 0)
 			row += TERRAIN_TO_CHAR.get(terrain, "P")
+			frow += "F" if hex_grid.forest_map.has(cell) else "."
 		rows.append(row)
-	await hex_grid.load_terrain(rows, grid_width, grid_height)
+		frows.append(frow)
+	await hex_grid.load_terrain(rows, grid_width, grid_height, frows)
 	_redraw_all_unit_markers()
 
 # --- Input ---
@@ -120,10 +124,18 @@ func _try_paint(global_pos: Vector2) -> void:
 	if cell == _last_painted_cell:
 		return
 	_last_painted_cell = cell
-	var old_terrain = hex_grid.terrain_map.get(cell, 0)
-	if old_terrain == current_terrain:
-		return
-	hex_grid.terrain_map[cell] = current_terrain
+	if current_terrain == 1:  # Terrain.FOREST
+		# Forêt = overlay, on ne change pas le terrain de base
+		if hex_grid.forest_map.has(cell):
+			return
+		hex_grid.forest_map[cell] = true
+	else:
+		var old_terrain = hex_grid.terrain_map.get(cell, 0)
+		var had_forest = hex_grid.forest_map.has(cell)
+		if old_terrain == current_terrain and not had_forest:
+			return
+		hex_grid.terrain_map[cell] = current_terrain
+		hex_grid.forest_map.erase(cell)
 	await _regenerate_grid()
 
 func _try_place_unit(global_pos: Vector2) -> void:
@@ -444,15 +456,20 @@ func _on_resize() -> void:
 			to_remove.append(cell)
 	for cell in to_remove:
 		placed_units.erase(cell)
+	var old_forest = hex_grid.forest_map.duplicate()
 	var rows: Array = []
+	var frows: Array = []
 	for r in range(grid_height):
 		var row = ""
+		var frow = ""
 		for q in range(grid_width):
 			var cell = Vector2i(q, r)
 			var terrain = old_map.get(cell, 0)
 			row += TERRAIN_TO_CHAR.get(terrain, "P")
+			frow += "F" if old_forest.has(cell) else "."
 		rows.append(row)
-	await hex_grid.load_terrain(rows, grid_width, grid_height)
+		frows.append(frow)
+	await hex_grid.load_terrain(rows, grid_width, grid_height, frows)
 	_redraw_all_unit_markers()
 	_status_label.text = "Grille : %dx%d" % [grid_width, grid_height]
 
@@ -478,13 +495,22 @@ func _on_menu_pressed() -> void:
 
 func _save_to_file(path: String) -> void:
 	var terrain_rows: Array = []
+	var forest_rows: Array = []
+	var has_forest = false
 	for r in range(grid_height):
 		var row = ""
+		var frow = ""
 		for q in range(grid_width):
 			var cell = Vector2i(q, r)
 			var terrain = hex_grid.terrain_map.get(cell, 0)
 			row += TERRAIN_TO_CHAR.get(terrain, "P")
+			if hex_grid.forest_map.has(cell):
+				frow += "F"
+				has_forest = true
+			else:
+				frow += "."
 		terrain_rows.append(row)
+		forest_rows.append(frow)
 	var units_array: Array = []
 	for cell in placed_units:
 		units_array.append({
@@ -498,6 +524,8 @@ func _save_to_file(path: String) -> void:
 		"terrain": terrain_rows,
 		"units": units_array
 	}
+	if has_forest:
+		data["forest"] = forest_rows
 	var json_str = JSON.stringify(data, "\t")
 	var file = FileAccess.open(path, FileAccess.WRITE)
 	if file == null:
@@ -524,7 +552,8 @@ func _load_from_file(path: String) -> void:
 	_height_spin.value = grid_height
 	# Charger le terrain
 	var terrain_rows: Array = data["terrain"]
-	await hex_grid.load_terrain(terrain_rows, grid_width, grid_height)
+	var forest_rows: Array = data.get("forest", [])
+	await hex_grid.load_terrain(terrain_rows, grid_width, grid_height, forest_rows)
 	# Charger les unités
 	placed_units.clear()
 	_clear_all_unit_markers()

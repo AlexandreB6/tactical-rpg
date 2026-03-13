@@ -6,6 +6,7 @@ extends CanvasLayer
 @onready var menu_button: Button = $Background/VBoxContainer/MenuButton
 
 func _ready() -> void:
+	$Background.theme = UITheme.current_theme
 	hide()
 	replay_button.pressed.connect(_on_replay_pressed)
 	menu_button.pressed.connect(_on_menu_pressed)

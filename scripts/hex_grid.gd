@@ -37,6 +37,8 @@ const TERRAIN_CHAR = {
 var cells = {}
 # Dictionnaire Vector2i → Terrain
 var terrain_map = {}
+# Overlay forêt : ensemble de cases avec arbres (indépendant du terrain de base)
+var forest_map: Dictionary = {}  # Vector2i → true
 # Couleur de base par case (pour restaurer après highlight)
 var _cell_base_color: Dictionary = {}
 # Textures de terrain extraites (Terrain → ImageTexture)
@@ -79,15 +81,29 @@ func _extract_tile_region(tilemap_tex: Texture2D) -> ImageTexture:
 	return ImageTexture.create_from_image(cropped)
 
 # Charge le terrain depuis un tableau de chaînes (ex: ["PPFFPP", "PPPFPP", ...])
-func load_terrain(terrain_rows: Array, width: int, height: int) -> void:
+# forest_rows optionnel : ["..FF..", ...] — F = forêt sur cette case, . = rien
+func load_terrain(terrain_rows: Array, width: int, height: int, forest_rows: Array = []) -> void:
 	grid_width = width
 	grid_height = height
 	terrain_map.clear()
+	forest_map.clear()
 	_cell_base_color.clear()
 	for r in range(grid_height):
 		var row: String = terrain_rows[r]
 		for q in range(grid_width):
-			terrain_map[Vector2i(q, r)] = TERRAIN_CHAR[row[q]]
+			var ch = row[q]
+			if ch == "F":
+				# Rétrocompat : F = forêt sur plaine
+				terrain_map[Vector2i(q, r)] = Terrain.PLAINS
+				forest_map[Vector2i(q, r)] = true
+			else:
+				terrain_map[Vector2i(q, r)] = TERRAIN_CHAR[ch]
+	# Couche forêt explicite (prioritaire)
+	for r in range(mini(forest_rows.size(), grid_height)):
+		var row: String = forest_rows[r]
+		for q in range(mini(row.length(), grid_width)):
+			if row[q] == "F":
+				forest_map[Vector2i(q, r)] = true
 	# Charger les textures si pas encore fait
 	if _terrain_tex.is_empty():
 		_init_terrain_textures()
@@ -177,10 +193,14 @@ func _create_hex_cell(q: int, r: int) -> void:
 	wall_left.z_as_relative = false
 	add_child(wall_left)
 	# 5. Surface top (fill, HEX_SIZE-2) — texturée
+	# Si forêt overlay, utiliser la texture/tint de forêt pour la surface
+	var is_forest = forest_map.has(cell)
+	var surface_terrain = Terrain.FOREST if is_forest else terrain
+	var surface_info = TERRAIN_INFO[surface_terrain]
 	var fill = Polygon2D.new()
 	var verts_fill = _get_hex_vertices(HEX_SIZE - 2)
 	fill.polygon = verts_fill
-	var tex = _terrain_tex.get(terrain)
+	var tex = _terrain_tex.get(surface_terrain)
 	if tex:
 		fill.texture = tex
 		fill.texture_repeat = CanvasItem.TEXTURE_REPEAT_ENABLED
@@ -192,9 +212,9 @@ func _create_hex_cell(q: int, r: int) -> void:
 			var wv = v + base_pix
 			uvs.append(Vector2(wv.x, wv.y / ISO_Y_SCALE))
 		fill.uv = uvs
-		fill.color = info["tint"]
+		fill.color = surface_info["tint"]
 	else:
-		fill.color = info["color"]
+		fill.color = surface_info["color"]
 	fill.position = pos
 	fill.z_index = zi
 	fill.z_as_relative = false
@@ -202,7 +222,10 @@ func _create_hex_cell(q: int, r: int) -> void:
 	cells[cell] = fill
 	_cell_base_color[cell] = fill.color
 	# 6. Décorations (arbres, rochers) sur certains terrains
-	_add_decoration(cell, terrain, pos, zi)
+	if forest_map.has(cell):
+		_add_decoration(cell, Terrain.FOREST, pos, zi)
+	else:
+		_add_decoration(cell, terrain, pos, zi)
 
 # Ajoute un sprite décoratif sur certains terrains (arbres, rochers, buissons)
 func _add_decoration(cell: Vector2i, terrain: Terrain, pos: Vector2, zi: int) -> void:
@@ -403,16 +426,29 @@ func get_terrain_at(cell: Vector2i) -> Terrain:
 func get_height_at(cell: Vector2i) -> int:
 	return TERRAIN_INFO[get_terrain_at(cell)]["height"]
 
+func has_forest(cell: Vector2i) -> bool:
+	return forest_map.has(cell)
+
 func get_terrain_def_bonus(cell: Vector2i) -> int:
-	return TERRAIN_INFO[get_terrain_at(cell)]["def_bonus"]
+	var bonus = TERRAIN_INFO[get_terrain_at(cell)]["def_bonus"]
+	if has_forest(cell):
+		bonus = maxi(bonus, 1)
+	return bonus
 
 func get_terrain_name(cell: Vector2i) -> String:
-	return TERRAIN_INFO[get_terrain_at(cell)]["name"]
+	var base_name = TERRAIN_INFO[get_terrain_at(cell)]["name"]
+	if has_forest(cell):
+		return "Forêt (" + base_name + ")"
+	return base_name
 
 func is_passable(cell: Vector2i) -> bool:
+	if has_forest(cell):
+		return false
 	return TERRAIN_INFO[get_terrain_at(cell)]["passable"]
 
 func blocks_los(cell: Vector2i) -> bool:
+	if has_forest(cell):
+		return true
 	return TERRAIN_INFO[get_terrain_at(cell)]["blocks_los"]
 
 # Vérifie la ligne de vue entre deux cases (les cases intermédiaires bloquantes = pas de LOS)

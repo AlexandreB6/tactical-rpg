@@ -29,6 +29,7 @@ layout_mode = 2
 text = "Combat Log"
 
 [node name="ToggleButton" type="Button" parent="PanelContainer/MarginContainer/VBoxContainer/HBoxContainer" unique_id=291311278]
+theme_type_variation = "BtnGhost"
 layout_mode = 2
 text = "▼"
 

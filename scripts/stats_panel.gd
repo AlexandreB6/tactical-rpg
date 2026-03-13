@@ -16,6 +16,8 @@ extends CanvasLayer
 signal panel_closed
 
 func _ready() -> void:
+	# Le thème root ne se propage pas à travers CanvasLayer, on l'applique manuellement
+	$PanelContainer.theme = UITheme.current_theme
 	hide()
 	close_button.pressed.connect(_on_close_pressed)
 
@@ -30,7 +32,10 @@ func show_stats(unit: Unit, terrain_text: String = "") -> void:
 	terrain_label.visible = terrain_text != ""
 	move_label.text = "Mouvement : " + str(unit.move_range)
 	description_label.text = unit.description
-	avatar.texture = unit.body.texture
+	if unit.avatar_texture:
+		avatar.texture = unit.avatar_texture
+	else:
+		avatar.texture = unit.body.texture
 	show()
 	await get_tree().process_frame
 	$PanelContainer.reset_size()
