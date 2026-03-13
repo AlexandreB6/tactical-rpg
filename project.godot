@@ -18,6 +18,12 @@ config/icon="res://icon.svg"
 [autoload]
 
 GameState="*res://scripts/game_state.gd"
+UITheme="*res://scripts/ui_theme.gd"
+
+[display]
+
+window/size/viewport_width=1920
+window/size/viewport_height=1080
 
 [physics]
 

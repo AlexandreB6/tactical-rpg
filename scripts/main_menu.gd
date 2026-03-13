@@ -13,7 +13,7 @@ func _ready() -> void:
 func _build_ui() -> void:
 	# Fond sombre
 	var bg = ColorRect.new()
-	bg.color = Color(0.12, 0.14, 0.18)
+	bg.color = Color(0.1, 0.12, 0.08)
 	bg.set_anchors_preset(Control.PRESET_FULL_RECT)
 	add_child(bg)
 	# Container centré
@@ -21,7 +21,7 @@ func _build_ui() -> void:
 	center.set_anchors_preset(Control.PRESET_FULL_RECT)
 	add_child(center)
 	var panel = PanelContainer.new()
-	panel.custom_minimum_size = Vector2(500, 450)
+	panel.custom_minimum_size = Vector2(600, 550)
 	center.add_child(panel)
 	var margin = MarginContainer.new()
 	margin.add_theme_constant_override("margin_left", 24)
@@ -42,7 +42,7 @@ func _build_ui() -> void:
 	subtitle.text = "Choisir une mission"
 	subtitle.add_theme_font_size_override("font_size", 16)
 	subtitle.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	subtitle.add_theme_color_override("font_color", Color(0.6, 0.6, 0.6))
+	subtitle.add_theme_color_override("font_color", Color(0.75, 0.7, 0.6))
 	vbox.add_child(subtitle)
 	vbox.add_child(HSeparator.new())
 	# Liste des niveaux
