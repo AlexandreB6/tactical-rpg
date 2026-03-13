@@ -1,0 +1,11 @@
+# Godot 4+ specific ignores
+.godot/
+/android/
+
+# Debug screenshots
+bigzindex.png
+
+# OS
+Thumbs.db
+desktop.ini
+.DS_Store

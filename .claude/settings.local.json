@@ -1,0 +1,17 @@
+{
+  "permissions": {
+    "allow": [
+      "WebSearch",
+      "Bash(python -c \"from PIL import Image; img = Image.open\\('D:/Projet/tactical-rpg/assets/sprites/warrior/warrior_2.png'\\); print\\(img.size\\)\")",
+      "Bash(cd \"D:\\\\Projet\\\\tactical-rpg\" && mv data/units/mage.tres data/units/archer.tres && mv data/units/enemy_mage.tres data/units/enemy_archer.tres)",
+      "Bash(find \"D:/Projet/tactical-rpg\" -type d -iname \"*tiny*\" -o -type d -iname \"*assets*\" -o -type d -iname \"*sprite*\" 2>/dev/null | head -20)",
+      "Bash(ls -d \"D:/Projet/tactical-rpg/assets/Tiny Swords/Units\"/*)",
+      "Bash(ls -d \"D:/Projet/tactical-rpg/assets/Tiny Swords/Units/Black Units\"/*)",
+      "Bash(cd \"D:/Projet/tactical-rpg\" && python -c \"\nfrom PIL import Image\nfiles = [\n    'assets/Tiny Swords/Units/Black Units/Lancer/Lancer_Idle.png',\n    'assets/Tiny Swords/Units/Black Units/Lancer/Lancer_Run.png',\n    'assets/Tiny Swords/Units/Black Units/Lancer/Lancer_Right_Attack.png',\n    'assets/Tiny Swords/Units/Black Units/Warrior/Warrior_Idle.png',\n]\nfor f in files:\n    img = Image.open\\(f\\)\n    print\\(f'{f}: {img.size}'\\)\n\")",
+      "Bash(ls -R \"D:\\\\Projet\\\\tactical-rpg\\\\assets\\\\Tiny Swords\\\\Terrain\" | grep -E \"\\\\.png$\" | grep -v \"\\\\.import\" | wc -l)",
+      "Bash(powershell.exe -NoProfile -Command \"Add-Type -AssemblyName System.Drawing; @\\('D:\\\\Projet\\\\tactical-rpg\\\\assets\\\\Tiny Swords\\\\Terrain\\\\Tileset\\\\Tilemap_color1.png','D:\\\\Projet\\\\tactical-rpg\\\\assets\\\\Tiny Swords\\\\Terrain\\\\Tileset\\\\Water Background color.png','D:\\\\Projet\\\\tactical-rpg\\\\assets\\\\Tiny Swords\\\\Terrain\\\\Resources\\\\Wood\\\\Trees\\\\Tree1.png','D:\\\\Projet\\\\tactical-rpg\\\\assets\\\\Tiny Swords\\\\Terrain\\\\Decorations\\\\Rocks\\\\Rock1.png'\\) | ForEach-Object { try { [System.Drawing.Image]::FromFile\\([string]::new\\($_\\)\\) } catch {} } | ForEach-Object { Write-Host \\($_.PhysicalDimension\\) ; $_.Dispose\\(\\) }\")",
+      "Bash(powershell.exe -NoProfile -ExecutionPolicy Bypass -File \"D:\\\\Projet\\\\tactical-rpg\\\\check_sizes.ps1\")",
+      "Bash(\"D:/Projet/Godot_v4.6.1-stable_win64_console.exe\" --path \"D:/Projet/tactical-rpg\" --headless --quit 2>&1 | tail -30)"
+    ]
+  }
+}

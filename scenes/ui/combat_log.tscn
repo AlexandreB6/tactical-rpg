@@ -1,0 +1,43 @@
+[gd_scene format=3 uid="uid://cwke4ts5xniot"]
+
+[ext_resource type="Script" uid="uid://chetcclucfrjo" path="res://scripts/combat_log.gd" id="1_wuhfb"]
+
+[node name="CombatLog" type="CanvasLayer" unique_id=1816936289]
+script = ExtResource("1_wuhfb")
+
+[node name="PanelContainer" type="PanelContainer" parent="." unique_id=456893964]
+custom_minimum_size = Vector2(260, 0)
+offset_right = 40.0
+offset_bottom = 40.0
+
+[node name="MarginContainer" type="MarginContainer" parent="PanelContainer" unique_id=1482106888]
+layout_mode = 2
+theme_override_constants/margin_left = 8
+theme_override_constants/margin_top = 8
+theme_override_constants/margin_right = 8
+theme_override_constants/margin_bottom = 8
+
+[node name="VBoxContainer" type="VBoxContainer" parent="PanelContainer/MarginContainer" unique_id=759824992]
+layout_mode = 2
+
+[node name="HBoxContainer" type="HBoxContainer" parent="PanelContainer/MarginContainer/VBoxContainer" unique_id=485944714]
+layout_mode = 2
+alignment = 1
+
+[node name="TitleLabel" type="Label" parent="PanelContainer/MarginContainer/VBoxContainer/HBoxContainer" unique_id=203696430]
+layout_mode = 2
+text = "Combat Log"
+
+[node name="ToggleButton" type="Button" parent="PanelContainer/MarginContainer/VBoxContainer/HBoxContainer" unique_id=291311278]
+layout_mode = 2
+text = "▼"
+
+[node name="ScrollContainer" type="ScrollContainer" parent="PanelContainer/MarginContainer/VBoxContainer" unique_id=1893249990]
+custom_minimum_size = Vector2(260, 0)
+layout_mode = 2
+
+[node name="LogLabel" type="Label" parent="PanelContainer/MarginContainer/VBoxContainer/ScrollContainer" unique_id=678951469]
+custom_minimum_size = Vector2(240, 0)
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+autowrap_mode = 2

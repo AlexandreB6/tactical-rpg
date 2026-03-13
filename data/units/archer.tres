@@ -1,0 +1,27 @@
+[gd_resource type="Resource" script_class="UnitData" format=3 uid="uid://c07o1ob1jbp7d"]
+
+[ext_resource type="Script" uid="uid://bgr051ywya2wd" path="res://scripts/UnitData.gd" id="1_85r4g"]
+[ext_resource type="Texture2D" path="res://assets/Tiny Swords/Units/Blue Units/Archer/Archer_Idle.png" id="2_sprite"]
+[ext_resource type="Texture2D" path="res://assets/Tiny Swords/Units/Blue Units/Archer/Archer_Run.png" id="3_run"]
+[ext_resource type="Texture2D" path="res://assets/Tiny Swords/Units/Blue Units/Archer/Archer_Shoot.png" id="4_attack"]
+[ext_resource type="Texture2D" path="res://assets/Tiny Swords/Units/Blue Units/Archer/Arrow.png" id="5_arrow"]
+
+[resource]
+script = ExtResource("1_85r4g")
+sprite_texture = ExtResource("2_sprite")
+sprite_hframes = 6
+sprite_run_texture = ExtResource("3_run")
+sprite_run_hframes = 4
+sprite_attack_texture = ExtResource("4_attack")
+sprite_attack_hframes = 8
+projectile_texture = ExtResource("5_arrow")
+unit_name = "Archer"
+hp = 7
+attack = 6
+defense = 0
+move_range = 4
+description = "\"One shot, one kill\""
+initiative = 6
+attack_range = 4
+min_attack_range = 2
+metadata/_custom_type_script = "uid://bgr051ywya2wd"

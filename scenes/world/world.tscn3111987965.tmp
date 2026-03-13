@@ -1,0 +1,16 @@
+[gd_scene format=3 uid="uid://sdsxmq3y4wgf"]
+
+[ext_resource type="Script" uid="uid://kkjc2cf4hyox" path="res://scripts/world.gd" id="1_6m72w"]
+[ext_resource type="Script" uid="uid://c8ivai1226iwp" path="res://scripts/hex_grid.gd" id="1_dphjl"]
+[ext_resource type="Script" uid="uid://b7kncavqwrsrm" path="res://scripts/camera_2d.gd" id="2_sl2e5"]
+
+[node name="World" type="Node2D" unique_id=1564064453]
+script = ExtResource("1_6m72w")
+
+[node name="HexGrid" type="Node2D" parent="." unique_id=1380949324]
+script = ExtResource("1_dphjl")
+
+[node name="Units" type="Node2D" parent="." unique_id=1654133619]
+
+[node name="Camera2D" type="Camera2D" parent="." unique_id=1748745267]
+script = ExtResource("2_sl2e5")

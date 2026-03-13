@@ -1,0 +1,43 @@
+[gd_scene format=3 uid="uid://cxkf8d3nm2v1p"]
+
+[ext_resource type="Script" uid="uid://dv3m9qxl2wpr4" path="res://scripts/action_bar.gd" id="1_r5kth"]
+
+[node name="ActionBar" type="CanvasLayer"]
+script = ExtResource("1_r5kth")
+
+[node name="PanelContainer" type="PanelContainer" parent="."]
+anchors_preset = 7
+anchor_left = 0.5
+anchor_top = 1.0
+anchor_right = 0.5
+anchor_bottom = 1.0
+offset_left = -230.0
+offset_top = -80.0
+offset_right = 230.0
+offset_bottom = -12.0
+grow_horizontal = 2
+grow_vertical = 0
+
+[node name="HBoxContainer" type="HBoxContainer" parent="PanelContainer"]
+layout_mode = 2
+theme_override_constants/separation = 6
+
+[node name="MoveButton" type="Button" parent="PanelContainer/HBoxContainer"]
+custom_minimum_size = Vector2(86, 64)
+layout_mode = 2
+
+[node name="AttackButton" type="Button" parent="PanelContainer/HBoxContainer"]
+custom_minimum_size = Vector2(86, 64)
+layout_mode = 2
+
+[node name="DefendButton" type="Button" parent="PanelContainer/HBoxContainer"]
+custom_minimum_size = Vector2(86, 64)
+layout_mode = 2
+
+[node name="EndTurnButton" type="Button" parent="PanelContainer/HBoxContainer"]
+custom_minimum_size = Vector2(86, 64)
+layout_mode = 2
+
+[node name="CancelButton" type="Button" parent="PanelContainer/HBoxContainer"]
+custom_minimum_size = Vector2(86, 64)
+layout_mode = 2

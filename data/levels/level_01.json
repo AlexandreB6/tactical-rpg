@@ -1,0 +1,21 @@
+{
+	"name": "Première bataille",
+	"grid_width": 10,
+	"grid_height": 8,
+	"terrain": [
+		"PPFFPPPPPP",
+		"PPPFPPPPPP",
+		"PPPPHPPPPM",
+		"PPPPHHWPPP",
+		"PPPPPWPPPP",
+		"PPFPPPPPFP",
+		"PPFFPPPFPP",
+		"PPPPPPPPPP"
+	],
+	"units": [
+		{ "data": "warrior", "pos": [1, 2] },
+		{ "data": "archer", "pos": [1, 5] },
+		{ "data": "enemy_warrior", "pos": [7, 3] },
+		{ "data": "enemy_lancer", "pos": [8, 6] }
+	]
+}

@@ -1,0 +1,25 @@
+[gd_resource type="Resource" script_class="UnitData" format=3]
+
+[ext_resource type="Script" uid="uid://bgr051ywya2wd" path="res://scripts/UnitData.gd" id="1_script"]
+[ext_resource type="Texture2D" path="res://assets/Tiny Swords/Units/Black Units/Lancer/Lancer_Idle.png" id="2_idle"]
+[ext_resource type="Texture2D" path="res://assets/Tiny Swords/Units/Black Units/Lancer/Lancer_Run.png" id="3_run"]
+[ext_resource type="Texture2D" path="res://assets/Tiny Swords/Units/Black Units/Lancer/Lancer_Right_Attack.png" id="4_attack"]
+
+[resource]
+script = ExtResource("1_script")
+sprite_texture = ExtResource("2_idle")
+sprite_hframes = 12
+sprite_run_texture = ExtResource("3_run")
+sprite_run_hframes = 6
+sprite_attack_texture = ExtResource("4_attack")
+sprite_attack_hframes = 3
+sprite_scale_factor = 1.6
+unit_name = "Lancier"
+hp = 12
+attack = 5
+defense = 2
+move_range = 3
+team = "enemy"
+initiative = 4
+attack_range = 2
+metadata/_custom_type_script = "uid://bgr051ywya2wd"
