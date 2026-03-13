@@ -1,0 +1,16 @@
+[gd_resource type="Resource" script_class="SpellData" format=3]
+
+[ext_resource type="Script" path="res://scripts/spell_data.gd" id="1_script"]
+[ext_resource type="Texture2D" path="res://assets/Tiny Swords/Units/Blue Units/Monk/Heal_Effect.png" id="2_effect"]
+
+[resource]
+script = ExtResource("1_script")
+spell_name = "Soin"
+description = "Restaure des HP à un allié"
+power = 5
+spell_range = 3
+min_spell_range = 0
+target_type = 0
+needs_los = true
+effect_texture = ExtResource("2_effect")
+effect_hframes = 11

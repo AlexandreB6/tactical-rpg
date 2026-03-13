@@ -89,8 +89,15 @@ func _process_enemy(enemy: Unit) -> void:
 	var players = _get_units_by_team("player")
 	if players.is_empty():
 		return
+	# Vérifier si un sort de soin est utile (allié < 70% HP en range)
+	var heal_result = await _try_enemy_heal(enemy)
+	if heal_result:
+		return
 	var target: Unit = _choose_target(enemy, players)
 	if target == null:
+		return
+	# Vérifier si un sort offensif est meilleur qu'une attaque physique
+	if await _try_enemy_offensive_spell(enemy, target):
 		return
 	# Déjà à portée → attaque directement
 	if enemy.can_attack_from(enemy.grid_pos, target.grid_pos, hex_grid):
@@ -178,6 +185,76 @@ func _find_best_move(enemy: Unit, target: Unit) -> Vector2i:
 			best_score = score
 			best_cell = cell
 	return best_cell
+
+# --- IA sorts ---
+
+# Tente de lancer un sort de soin sur un allié blessé (< 70% HP)
+func _try_enemy_heal(enemy: Unit) -> bool:
+	for spell in enemy.spells:
+		if spell.target_type != SpellData.TargetType.ALLY:
+			continue
+		var best_target: Unit = null
+		var worst_ratio: float = 1.0
+		for ally in _get_units_by_team("enemy"):
+			if ally.is_queued_for_deletion():
+				continue
+			var ratio = float(ally.hp) / ally.max_hp
+			if ratio < 0.7 and ratio < worst_ratio:
+				if enemy.can_cast_spell_on(spell, enemy.grid_pos, ally.grid_pos, hex_grid):
+					worst_ratio = ratio
+					best_target = ally
+		if best_target != null:
+			await _enemy_cast_spell(enemy, best_target, spell)
+			return true
+	return false
+
+# Tente de lancer un sort offensif si plus efficace que l'attaque physique
+func _try_enemy_offensive_spell(enemy: Unit, target: Unit) -> bool:
+	for spell in enemy.spells:
+		if spell.target_type != SpellData.TargetType.ENEMY:
+			continue
+		if not enemy.can_cast_spell_on(spell, enemy.grid_pos, target.grid_pos, hex_grid):
+			continue
+		var spell_damage = max(1, spell.power - target.get_effective_defense())
+		var height_diff = hex_grid.get_height_at(enemy.grid_pos) - hex_grid.get_height_at(target.grid_pos)
+		var terrain_def = hex_grid.get_terrain_def_bonus(target.grid_pos)
+		var phys_damage = Unit.calc_damage(enemy.attack, target, height_diff, terrain_def)
+		# Utiliser le sort si dégâts >= attaque physique ou pas à portée physique
+		if spell_damage >= phys_damage or not enemy.can_attack_from(enemy.grid_pos, target.grid_pos, hex_grid):
+			await _enemy_cast_spell(enemy, target, spell)
+			return true
+	return false
+
+# Lance un sort ennemi (animation + effet)
+func _enemy_cast_spell(enemy: Unit, target: Unit, spell: SpellData) -> void:
+	await enemy.play_cast_anim()
+	# Jouer l'effet visuel
+	if spell.effect_texture:
+		var effect = Sprite2D.new()
+		effect.texture = spell.effect_texture
+		effect.hframes = spell.effect_hframes
+		effect.frame = 0
+		effect.position = target.position + Vector2(0, -20)
+		effect.z_index = 999
+		effect.z_as_relative = false
+		var tex_size = spell.effect_texture.get_size()
+		var frame_width = tex_size.x / spell.effect_hframes
+		var scale_factor = 100.0 / max(frame_width, tex_size.y)
+		effect.scale = Vector2(scale_factor, scale_factor)
+		units_node.add_child(effect)
+		for i in range(spell.effect_hframes):
+			effect.frame = i
+			await get_tree().create_timer(0.08).timeout
+		effect.queue_free()
+	if spell.target_type == SpellData.TargetType.ALLY:
+		await target.heal(spell.power)
+		combat_log.add_entry(enemy.unit_name + " lance " + spell.spell_name + " sur " + target.unit_name + " (+" + str(spell.power) + " HP)")
+	else:
+		var terrain_def = hex_grid.get_terrain_def_bonus(target.grid_pos)
+		var damage = max(1, spell.power - target.get_effective_defense() - terrain_def)
+		combat_log.add_entry(enemy.unit_name + " lance " + spell.spell_name + " sur " + target.unit_name + " (-" + str(damage) + " HP)")
+		await target.take_damage(damage)
+		check_victory()
 
 # --- Utilitaires ---
 
