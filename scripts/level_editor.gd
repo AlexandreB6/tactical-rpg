@@ -12,6 +12,8 @@ var current_mode: Mode = Mode.TERRAIN
 var current_terrain: int = 0  # HexGrid.Terrain.PLAINS
 # Unité sélectionnée dans la palette
 var current_unit_type: String = ""
+# Équipe sélectionnée pour le placement d'unités
+var _selected_team: String = "player"
 # Dimensions de la grille
 var grid_width: int = 10
 var grid_height: int = 8
@@ -46,6 +48,7 @@ var _load_dialog: FileDialog
 var _status_label: Label
 var _current_file_path: String = ""
 var _erase_mode_btn: Button
+var _team_toggle_btn: Button
 
 # Mapping terrain enum → caractère pour le JSON
 const TERRAIN_TO_CHAR = {0: "P", 1: "F", 2: "H", 3: "M", 4: "W"}
@@ -69,7 +72,7 @@ func _scan_available_units() -> void:
 	dir.list_dir_begin()
 	var file_name = dir.get_next()
 	while file_name != "":
-		if file_name.ends_with(".tres"):
+		if file_name.ends_with(".tres") and not file_name.begins_with("enemy_"):
 			_available_units.append(file_name.get_basename())
 		file_name = dir.get_next()
 	dir.list_dir_end()
@@ -153,13 +156,14 @@ func _try_place_unit(global_pos: Vector2) -> void:
 	if placed_units.has(cell):
 		placed_units.erase(cell)
 		_remove_unit_marker(cell)
-	placed_units[cell] = {"data": current_unit_type}
-	_create_unit_marker(cell, current_unit_type)
-	_status_label.text = "%s place en (%d, %d)" % [current_unit_type, cell.x, cell.y]
+	placed_units[cell] = {"data": current_unit_type, "team": _selected_team}
+	_create_unit_marker(cell, current_unit_type, _selected_team)
+	var team_label = "(J)" if _selected_team == "player" else "(E)"
+	_status_label.text = "%s %s place en (%d, %d)" % [current_unit_type, team_label, cell.x, cell.y]
 
 # --- Marqueurs visuels des unités ---
 
-func _create_unit_marker(cell: Vector2i, unit_type: String) -> void:
+func _create_unit_marker(cell: Vector2i, unit_type: String, unit_team: String = "") -> void:
 	_remove_unit_marker(cell)
 	var marker = Node2D.new()
 	var h = hex_grid.get_height_at(cell)
@@ -169,12 +173,13 @@ func _create_unit_marker(cell: Vector2i, unit_type: String) -> void:
 	marker.z_index = zi
 	marker.z_as_relative = false
 	# Cercle coloré selon l'équipe
-	var color = _get_unit_color(unit_type)
+	var color = _get_unit_color(unit_type, unit_team)
 	var circle = _create_circle_polygon(14.0, color)
 	marker.add_child(circle)
-	# Label avec le nom de l'unité
+	# Label avec le nom de l'unité + indicateur équipe
 	var label = Label.new()
-	label.text = _get_unit_short_name(unit_type)
+	var team_suffix = "(J)" if unit_team == "player" else "(E)" if unit_team == "enemy" else ""
+	label.text = _get_unit_short_name(unit_type) + team_suffix
 	label.add_theme_font_size_override("font_size", 10)
 	label.add_theme_color_override("font_color", Color.WHITE)
 	label.add_theme_color_override("font_shadow_color", Color.BLACK)
@@ -211,24 +216,21 @@ func _redraw_all_unit_markers() -> void:
 	_clear_all_unit_markers()
 	for cell in placed_units:
 		if hex_grid.is_valid_cell(cell):
-			_create_unit_marker(cell, placed_units[cell]["data"])
+			var unit_team = placed_units[cell].get("team", "")
+			_create_unit_marker(cell, placed_units[cell]["data"], unit_team)
 
-func _get_unit_color(unit_type: String) -> Color:
+func _get_unit_color(unit_type: String, unit_team: String = "") -> Color:
+	if unit_team == "enemy":
+		return MARKER_COLOR_ENEMY
+	elif unit_team == "player":
+		return MARKER_COLOR_PLAYER
+	# Rétrocompat : détecter le préfixe
 	if unit_type.begins_with("enemy"):
 		return MARKER_COLOR_ENEMY
-	# Charger le .tres pour vérifier l'équipe
-	var path = "res://data/units/" + unit_type + ".tres"
-	var data = load(path)
-	if data and data.team == "enemy":
-		return MARKER_COLOR_ENEMY
-	elif data and data.team == "player":
-		return MARKER_COLOR_PLAYER
 	return MARKER_COLOR_UNKNOWN
 
 func _get_unit_short_name(unit_type: String) -> String:
-	# Première lettre en majuscule, sans "enemy_"
-	var display = unit_type.replace("enemy_", "E:")
-	return display.substr(0, 8)
+	return unit_type.substr(0, 8)
 
 # --- Construction de l'UI ---
 
@@ -351,6 +353,11 @@ func _build_ui() -> void:
 	var unit_title = Label.new()
 	unit_title.text = "Unites :"
 	_unit_palette.add_child(unit_title)
+	# Toggle équipe
+	_team_toggle_btn = Button.new()
+	_team_toggle_btn.text = "Equipe : Joueur"
+	_team_toggle_btn.pressed.connect(_on_team_toggle)
+	_unit_palette.add_child(_team_toggle_btn)
 	# Bouton effacer
 	_erase_mode_btn = Button.new()
 	_erase_mode_btn.text = "Effacer"
@@ -437,6 +444,14 @@ func _on_terrain_selected(terrain_id: int) -> void:
 	for i in range(_terrain_buttons.size()):
 		_terrain_buttons[i].button_pressed = (i == terrain_id)
 
+func _on_team_toggle() -> void:
+	if _selected_team == "player":
+		_selected_team = "enemy"
+		_team_toggle_btn.text = "Equipe : Ennemi"
+	else:
+		_selected_team = "player"
+		_team_toggle_btn.text = "Equipe : Joueur"
+
 func _on_unit_selected(unit_name: String) -> void:
 	current_unit_type = unit_name
 	_erase_mode_btn.button_pressed = (unit_name == "")
@@ -513,10 +528,12 @@ func _save_to_file(path: String) -> void:
 		forest_rows.append(frow)
 	var units_array: Array = []
 	for cell in placed_units:
-		units_array.append({
+		var unit_entry = {
 			"data": placed_units[cell]["data"],
+			"team": placed_units[cell].get("team", "player"),
 			"pos": [cell.x, cell.y]
-		})
+		}
+		units_array.append(unit_entry)
 	var data = {
 		"name": level_name,
 		"grid_width": grid_width,
@@ -560,7 +577,18 @@ func _load_from_file(path: String) -> void:
 	if data.has("units"):
 		for unit_info in data["units"]:
 			var pos = Vector2i(int(unit_info["pos"][0]), int(unit_info["pos"][1]))
-			placed_units[pos] = {"data": unit_info["data"]}
-			_create_unit_marker(pos, unit_info["data"])
+			var unit_type: String = unit_info["data"]
+			var unit_team: String = ""
+			if unit_info.has("team"):
+				unit_team = unit_info["team"]
+			else:
+				# Rétrocompat : détecter le préfixe "enemy_"
+				if unit_type.begins_with("enemy_"):
+					unit_type = unit_type.substr(6)
+					unit_team = "enemy"
+				else:
+					unit_team = "player"
+			placed_units[pos] = {"data": unit_type, "team": unit_team}
+			_create_unit_marker(pos, unit_type, unit_team)
 	_current_file_path = path
 	_status_label.text = "Charge : " + path.get_file()

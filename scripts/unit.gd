@@ -69,7 +69,7 @@ var _playing_oneshot: bool = false
 var _oneshot_frame_duration: float = ATTACK_FRAME_DURATION
 
 # Initialise l'unité depuis ses données et la positionne sur la grille
-func setup(data: UnitData, p_grid_pos: Vector2i, hex_grid: Node2D) -> void:
+func setup(data: UnitData, p_grid_pos: Vector2i, hex_grid: Node2D, p_team: String = "player", overrides: Dictionary = {}) -> void:
 	unit_name = data.unit_name
 	max_hp = data.hp
 	hp = data.hp
@@ -79,9 +79,12 @@ func setup(data: UnitData, p_grid_pos: Vector2i, hex_grid: Node2D) -> void:
 	attack_range = data.attack_range
 	min_attack_range = data.min_attack_range
 	initiative = data.initiative
-	team = data.team
+	team = p_team
 	description = data.description
 	avatar_texture = data.avatar_texture
+	# Avatar ennemi si disponible
+	if team == "enemy" and data.enemy_avatar_texture:
+		avatar_texture = data.enemy_avatar_texture
 	grid_pos = p_grid_pos
 	_hex_grid = hex_grid
 	iso_y_scale = hex_grid.ISO_Y_SCALE
@@ -106,30 +109,84 @@ func setup(data: UnitData, p_grid_pos: Vector2i, hex_grid: Node2D) -> void:
 	_sprite_scale_factor = data.sprite_scale_factor
 	class_type = data.class_type
 	spells = data.spells.duplicate()
+	# Appliquer les overrides
+	_apply_overrides(overrides)
+	# Remapper les sprites pour l'équipe ennemie
+	if team == "enemy":
+		_remap_sprites_for_team()
 	_setup_body(data)
 	name_label.visible = false
 	_update_hp_bar()
-	if data.sprite_texture:
+	if _idle_texture:
 		_start_idle_animation()
+
+# Applique les overrides de stats depuis le JSON
+func _apply_overrides(overrides: Dictionary) -> void:
+	for key in overrides:
+		match key:
+			"hp":
+				hp = overrides[key]
+				max_hp = overrides[key]
+			"attack":
+				attack = overrides[key]
+			"defense":
+				defense = overrides[key]
+			"move_range":
+				move_range = overrides[key]
+			"initiative":
+				initiative = overrides[key]
+			"attack_range":
+				attack_range = overrides[key]
+			"min_attack_range":
+				min_attack_range = overrides[key]
+			"unit_name":
+				unit_name = overrides[key]
+			"spells":
+				spells.clear()
+				for spell_name in overrides[key]:
+					var spell = load("res://data/spells/" + spell_name + ".tres")
+					if spell:
+						spells.append(spell)
+
+# Remplace "Blue Units" par "Black Units" dans les chemins de textures
+func _remap_sprites_for_team() -> void:
+	_idle_texture = _remap_texture(_idle_texture)
+	_run_texture = _remap_texture(_run_texture)
+	_attack_texture = _remap_texture(_attack_texture)
+	_guard_texture = _remap_texture(_guard_texture)
+	_cast_texture = _remap_texture(_cast_texture)
+	_projectile_texture = _remap_texture(_projectile_texture)
+
+func _remap_texture(tex: Texture2D) -> Texture2D:
+	if tex == null:
+		return null
+	var path = tex.resource_path
+	if "Blue Units" in path:
+		var new_path = path.replace("Blue Units", "Black Units")
+		var remapped = load(new_path)
+		if remapped:
+			return remapped
+	return tex
 
 # Configure le visuel du pion : sprite si disponible, sinon cercle coloré
 func _setup_body(data: UnitData) -> void:
-	if data.sprite_texture:
-		body.texture = data.sprite_texture
-		_frame_count = data.sprite_hframes
+	if _idle_texture:
+		body.texture = _idle_texture
+		_frame_count = _idle_hframes
 		body.hframes = _frame_count
 		body.frame = 0
-		var tex_size = data.sprite_texture.get_size()
+		var tex_size = _idle_texture.get_size()
 		var frame_width = tex_size.x / _frame_count
 		var frame_height = tex_size.y
 		var target_size = 110.0
-		var scale_factor = target_size / max(frame_width, frame_height) * data.sprite_scale_factor
-		_flip_x = -1.0 if data.team == "enemy" else 1.0
+		var scale_factor = target_size / max(frame_width, frame_height) * _sprite_scale_factor
+		_flip_x = -1.0 if team == "enemy" else 1.0
 		body.scale = Vector2(scale_factor * _flip_x, scale_factor)
 		body.position.y = -20.0
 	else:
 		body.texture = null
-		_draw_body_fallback(data.color)
+		var fallback_color = Color(0.9, 0.2, 0.2) if team == "enemy" else Color(0.2, 0.4, 0.9)
+		_draw_body_fallback(fallback_color)
 
 # Fallback : dessine un cercle coloré quand il n'y a pas de sprite
 func _draw_body_fallback(color: Color) -> void:

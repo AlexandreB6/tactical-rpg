@@ -14,46 +14,36 @@
 	],
 	"units": [
 		{
-			"data": "enemy_archer",
-			"pos": [
-				7,
-				2
-			]
-		},
-		{
-			"data": "enemy_warrior",
-			"pos": [
-				7,
-				3
-			]
-		},
-		{
-			"data": "enemy_lancer",
-			"pos": [
-				7,
-				4
-			]
+			"data": "archer",
+			"team": "enemy",
+			"pos": [7, 2],
+			"overrides": {"hp": 15, "attack": 5, "defense": 3, "move_range": 2, "initiative": 2, "attack_range": 1, "min_attack_range": 1}
 		},
 		{
 			"data": "warrior",
-			"pos": [
-				1,
-				2
-			]
+			"team": "enemy",
+			"pos": [7, 3],
+			"overrides": {"hp": 8, "attack": 2, "defense": 0, "initiative": 7}
+		},
+		{
+			"data": "lancer",
+			"team": "enemy",
+			"pos": [7, 4]
+		},
+		{
+			"data": "warrior",
+			"team": "player",
+			"pos": [1, 2]
 		},
 		{
 			"data": "archer",
-			"pos": [
-				1,
-				3
-			]
+			"team": "player",
+			"pos": [1, 3]
 		},
 		{
 			"data": "warrior",
-			"pos": [
-				2,
-				3
-			]
+			"team": "player",
+			"pos": [2, 3]
 		}
 	]
 }

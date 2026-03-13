@@ -7,8 +7,6 @@ class_name UnitData
 @export var defense: int = 1
 @export var move_range: int = 3
 @export var description: String = ""
-@export var team: String = "player"
-@export var color: Color = Color(0.2, 0.4, 0.9)
 @export var initiative: int = 5
 @export var attack_range: int = 1
 @export var min_attack_range: int = 1
@@ -23,6 +21,7 @@ class_name UnitData
 @export var sprite_scale_factor: float = 1.0
 @export var projectile_texture: Texture2D = null
 @export var avatar_texture: Texture2D = null
+@export var enemy_avatar_texture: Texture2D = null
 
 enum ClassType { PHYSICAL, MAGIC }
 @export var class_type: ClassType = ClassType.PHYSICAL
