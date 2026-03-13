@@ -1,7 +1,7 @@
 {
 	"grid_height": 8,
 	"grid_width": 10,
-	"name": "Level 3",
+	"name": "level_03",
 	"terrain": [
 		"MMMWMHMPPP",
 		"FFWWHPHHPP",

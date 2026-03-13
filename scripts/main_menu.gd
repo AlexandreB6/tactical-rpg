@@ -80,15 +80,19 @@ func _scan_levels() -> void:
 	if dir == null:
 		return
 	dir.list_dir_begin()
+	var file_names: Array[String] = []
 	var file_name = dir.get_next()
 	while file_name != "":
 		if file_name.ends_with(".json"):
-			var path = "res://data/levels/" + file_name
-			var display_name = _get_level_display_name(path)
-			_level_list.add_item(display_name)
-			_levels.append(path)
+			file_names.append(file_name)
 		file_name = dir.get_next()
 	dir.list_dir_end()
+	file_names.sort()
+	for fname in file_names:
+		var path = "res://data/levels/" + fname
+		var display_name = _get_level_display_name(path)
+		_level_list.add_item(display_name)
+		_levels.append(path)
 	if _level_list.item_count > 0:
 		_level_list.select(0)
 
