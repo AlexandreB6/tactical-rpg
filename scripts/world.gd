@@ -50,6 +50,9 @@ func _ready() -> void:
 	_create_cursors()
 	_create_terrain_tooltip()
 	_create_end_phase_button()
+	# Utiliser le niveau sélectionné dans le menu si disponible
+	if GameState.selected_level_path != "":
+		level_path = GameState.selected_level_path
 	await _load_level(level_path)
 	game_manager.init(units_node, hex_grid, end_screen, combat_log)
 	stats_panel.panel_closed.connect(_on_stats_panel_closed)
@@ -102,9 +105,9 @@ func _create_end_phase_button() -> void:
 	_end_phase_button.anchor_top = 0.0
 	_end_phase_button.anchor_bottom = 0.0
 	_end_phase_button.offset_left = -152
-	_end_phase_button.offset_top = 12
+	_end_phase_button.offset_top = 52
 	_end_phase_button.offset_right = -12
-	_end_phase_button.offset_bottom = 48
+	_end_phase_button.offset_bottom = 82
 	_end_phase_button.pressed.connect(_on_end_phase_pressed)
 	_end_phase_layer.add_child(_end_phase_button)
 	# Dialog de confirmation
@@ -115,6 +118,20 @@ func _create_end_phase_button() -> void:
 	_confirm_dialog.confirmed.connect(_force_end_phase)
 	_end_phase_layer.add_child(_confirm_dialog)
 	_end_phase_button.visible = false
+	# Bouton retour au menu
+	var menu_btn = Button.new()
+	menu_btn.text = "Menu"
+	menu_btn.custom_minimum_size = Vector2(80, 30)
+	menu_btn.anchor_left = 1.0
+	menu_btn.anchor_right = 1.0
+	menu_btn.anchor_top = 0.0
+	menu_btn.anchor_bottom = 0.0
+	menu_btn.offset_left = -92
+	menu_btn.offset_top = 12
+	menu_btn.offset_right = -12
+	menu_btn.offset_bottom = 48
+	menu_btn.pressed.connect(func(): get_tree().change_scene_to_file("res://scenes/ui/main_menu.tscn"))
+	_end_phase_layer.add_child(menu_btn)
 
 func _on_end_phase_pressed() -> void:
 	if is_animating or not game_manager.is_player_phase():

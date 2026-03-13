@@ -40,3 +40,8 @@ vertical_alignment = 1
 layout_mode = 2
 theme_override_font_sizes/font_size = 32
 text = "Replay"
+
+[node name="MenuButton" type="Button" parent="Background/VBoxContainer"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 24
+text = "Menu principal"

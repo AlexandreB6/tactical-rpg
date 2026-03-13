@@ -1,4 +1,4 @@
-[gd_scene format=3 uid="uid://dbjpu2y4hlt0a"]
+[gd_scene format=3 uid="uid://bvcix0gxnj46m"]
 
 [ext_resource type="Script" uid="uid://kkjc2cf4hyox" path="res://scripts/world.gd" id="1_6m72w"]
 [ext_resource type="Script" uid="uid://c8ivai1226iwp" path="res://scripts/hex_grid.gd" id="1_dphjl"]

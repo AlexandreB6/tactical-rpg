@@ -1,0 +1,59 @@
+{
+	"grid_height": 8,
+	"grid_width": 10,
+	"name": "Level 3",
+	"terrain": [
+		"MMMWMHMPPP",
+		"FFWWHPHHPP",
+		"FPWPPWPHPP",
+		"FPPWHHPPPP",
+		"PPPPHWPPPP",
+		"PPPHPPPPPP",
+		"PFHFHFPPPP",
+		"PFHFFPPPPP"
+	],
+	"units": [
+		{
+			"data": "enemy_archer",
+			"pos": [
+				7,
+				2
+			]
+		},
+		{
+			"data": "enemy_warrior",
+			"pos": [
+				7,
+				3
+			]
+		},
+		{
+			"data": "enemy_lancer",
+			"pos": [
+				7,
+				4
+			]
+		},
+		{
+			"data": "warrior",
+			"pos": [
+				1,
+				2
+			]
+		},
+		{
+			"data": "archer",
+			"pos": [
+				1,
+				3
+			]
+		},
+		{
+			"data": "warrior",
+			"pos": [
+				2,
+				3
+			]
+		}
+	]
+}

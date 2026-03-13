@@ -1,0 +1,16 @@
+{
+	"grid_height": 8,
+	"grid_width": 10,
+	"name": "level_02",
+	"terrain": [
+		"MMMMMMMMMM",
+		"PPPPFFFFPP",
+		"PPHHWPPPPP",
+		"PFFWWPPPPP",
+		"PFFWWPPPPP",
+		"PPPPPPPPPP",
+		"PPPPPPPPPP",
+		"PPPPPPPPPP"
+	],
+	"units": []
+}

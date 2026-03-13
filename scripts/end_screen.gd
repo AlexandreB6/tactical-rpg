@@ -3,10 +3,12 @@ extends CanvasLayer
 
 @onready var message_label: Label = $Background/VBoxContainer/MessageLabel
 @onready var replay_button: Button = $Background/VBoxContainer/ReplayButton
+@onready var menu_button: Button = $Background/VBoxContainer/MenuButton
 
 func _ready() -> void:
 	hide()
 	replay_button.pressed.connect(_on_replay_pressed)
+	menu_button.pressed.connect(_on_menu_pressed)
 
 # Affiche le message de fin et rend l'écran visible
 func show_end_screen(message: String) -> void:
@@ -15,3 +17,6 @@ func show_end_screen(message: String) -> void:
 
 func _on_replay_pressed() -> void:
 	get_tree().reload_current_scene()
+
+func _on_menu_pressed() -> void:
+	get_tree().change_scene_to_file("res://scenes/ui/main_menu.tscn")
