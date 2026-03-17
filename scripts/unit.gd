@@ -280,6 +280,7 @@ func play_cast_anim() -> void:
 # Restaure des HP (plafonné à max_hp) avec un flash vert
 func heal(amount: int) -> void:
 	hp = min(hp + amount, max_hp)
+	_spawn_floating_text("+" + str(amount), Color(0.2, 0.9, 0.2))
 	# Flash vert (soin)
 	body.modulate = Color(0.5, 2.0, 0.5, 1.0)
 	var tween = create_tween()
@@ -331,9 +332,30 @@ func _fire_projectile(target_pos: Vector2) -> void:
 		await get_tree().process_frame
 	projectile.queue_free()
 
+# Affiche un texte flottant qui monte et disparaît (dégâts ou soin)
+func _spawn_floating_text(text: String, color: Color) -> void:
+	var label = Label.new()
+	label.text = text
+	label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	label.add_theme_font_size_override("font_size", 16)
+	label.add_theme_color_override("font_color", color)
+	label.add_theme_color_override("font_shadow_color", Color(0, 0, 0, 0.8))
+	label.add_theme_constant_override("shadow_offset_x", 1)
+	label.add_theme_constant_override("shadow_offset_y", 1)
+	label.position = Vector2(-20, -50)
+	label.z_index = 1000
+	label.z_as_relative = false
+	add_child(label)
+	var tween = create_tween()
+	tween.set_parallel(true)
+	tween.tween_property(label, "position:y", label.position.y - 40.0, 0.8).set_ease(Tween.EASE_OUT).set_trans(Tween.TRANS_QUAD)
+	tween.tween_property(label, "modulate:a", 0.0, 0.8).set_ease(Tween.EASE_IN).set_trans(Tween.TRANS_QUAD)
+	tween.chain().tween_callback(label.queue_free)
+
 # Applique des dégâts à l'unité et la supprime si ses HP tombent à 0
 func take_damage(amount: int) -> void:
 	hp -= amount
+	_spawn_floating_text("-" + str(amount), Color(1.0, 0.2, 0.2))
 	# Flash blanc (impact) + shake
 	body.modulate = Color(3.0, 3.0, 3.0, 1.0)
 	var base_pos = body.position
