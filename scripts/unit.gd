@@ -36,13 +36,9 @@ var _hex_grid: Node2D = null
 # --- Références aux nœuds enfants ---
 @onready var body: Sprite2D = $Body
 @onready var name_label: Label = $NameLabel
-@onready var hp_bar_bg: ColorRect = $HpBarBg
-@onready var hp_bar_fill: ColorRect = $HpBarFill
-@onready var hp_text: Label = $HpText
 @onready var highlight: Polygon2D = $Highlight
 @onready var shield_label: Label = $ShieldLabel
 
-const HP_BAR_WIDTH = 52.0
 
 # --- Animation ---
 var _idle_texture: Texture2D = null
@@ -91,7 +87,7 @@ func setup(data: UnitData, p_grid_pos: Vector2i, hex_grid: Node2D, p_team: Strin
 	position = hex_grid.get_cell_world_position(p_grid_pos)
 	_update_z_index()
 	# Éléments UI toujours au-dessus des hex (z_index global élevé)
-	for ui_node in [hp_bar_bg, hp_bar_fill, hp_text, name_label, shield_label]:
+	for ui_node in [name_label, shield_label]:
 		ui_node.z_index = 1000
 		ui_node.z_as_relative = false
 	# Stocker les textures d'animation
@@ -116,7 +112,6 @@ func setup(data: UnitData, p_grid_pos: Vector2i, hex_grid: Node2D, p_team: Strin
 		_remap_sprites_for_team()
 	_setup_body(data)
 	name_label.visible = false
-	_update_hp_bar()
 	if _idle_texture:
 		_start_idle_animation()
 
@@ -285,7 +280,7 @@ func play_cast_anim() -> void:
 # Restaure des HP (plafonné à max_hp) avec un flash vert
 func heal(amount: int) -> void:
 	hp = min(hp + amount, max_hp)
-	_update_hp_bar()
+	_spawn_floating_text("+" + str(amount), Color(0.2, 0.9, 0.2))
 	# Flash vert (soin)
 	body.modulate = Color(0.5, 2.0, 0.5, 1.0)
 	var tween = create_tween()
@@ -337,10 +332,30 @@ func _fire_projectile(target_pos: Vector2) -> void:
 		await get_tree().process_frame
 	projectile.queue_free()
 
+# Affiche un texte flottant qui monte et disparaît (dégâts ou soin)
+func _spawn_floating_text(text: String, color: Color) -> void:
+	var label = Label.new()
+	label.text = text
+	label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	label.add_theme_font_size_override("font_size", 16)
+	label.add_theme_color_override("font_color", color)
+	label.add_theme_color_override("font_shadow_color", Color(0, 0, 0, 0.8))
+	label.add_theme_constant_override("shadow_offset_x", 1)
+	label.add_theme_constant_override("shadow_offset_y", 1)
+	label.position = Vector2(-20, -50)
+	label.z_index = 1000
+	label.z_as_relative = false
+	add_child(label)
+	var tween = create_tween()
+	tween.set_parallel(true)
+	tween.tween_property(label, "position:y", label.position.y - 40.0, 0.8).set_ease(Tween.EASE_OUT).set_trans(Tween.TRANS_QUAD)
+	tween.tween_property(label, "modulate:a", 0.0, 0.8).set_ease(Tween.EASE_IN).set_trans(Tween.TRANS_QUAD)
+	tween.chain().tween_callback(label.queue_free)
+
 # Applique des dégâts à l'unité et la supprime si ses HP tombent à 0
 func take_damage(amount: int) -> void:
 	hp -= amount
-	_update_hp_bar()
+	_spawn_floating_text("-" + str(amount), Color(1.0, 0.2, 0.2))
 	# Flash blanc (impact) + shake
 	body.modulate = Color(3.0, 3.0, 3.0, 1.0)
 	var base_pos = body.position
@@ -358,15 +373,6 @@ func take_damage(amount: int) -> void:
 	if hp <= 0:
 		queue_free()
 
-# Met à jour la barre de vie (largeur, couleur, texte)
-func _update_hp_bar() -> void:
-	var ratio = clampf(float(hp) / max_hp, 0.0, 1.0)
-	hp_bar_fill.offset_right = hp_bar_fill.offset_left + HP_BAR_WIDTH * ratio
-	if ratio > 0.5:
-		hp_bar_fill.color = Color(0.2, 0.8, 0.2).lerp(Color(1.0, 0.85, 0.1), 1.0 - (ratio - 0.5) * 2.0)
-	else:
-		hp_bar_fill.color = Color(1.0, 0.85, 0.1).lerp(Color(0.9, 0.15, 0.15), 1.0 - ratio * 2.0)
-	hp_text.text = str(hp) + "/" + str(max_hp)
 
 # Calcule le z_index de l'unité d'après sa position sur la grille
 # Impair = entre les couches hex (pairs) pour une occlusion correcte
