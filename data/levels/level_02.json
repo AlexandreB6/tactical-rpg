@@ -1,16 +1,83 @@
 {
+	"forest": [
+		"..........",
+		"....FFFF..",
+		"..........",
+		".FF.......",
+		".FF.......",
+		"..........",
+		"..........",
+		".........."
+	],
 	"grid_height": 8,
 	"grid_width": 10,
 	"name": "level_02",
 	"terrain": [
 		"MMMMMMMMMM",
-		"PPPPFFFFPP",
+		"PPPPPPPPPP",
 		"PPHHWPPPPP",
-		"PFFWWPPPPP",
-		"PFFWWPPPPP",
+		"PPPWWPPPPP",
+		"PPPWWPPPPP",
 		"PPPPPPPPPP",
 		"PPPPPPPPPP",
 		"PPPPPPPPPP"
 	],
-	"units": []
+	"units": [
+		{
+			"data": "archer",
+			"pos": [
+				6,
+				4
+			],
+			"team": "enemy"
+		},
+		{
+			"data": "lancer",
+			"pos": [
+				5,
+				4
+			],
+			"team": "enemy"
+		},
+		{
+			"data": "lancer",
+			"pos": [
+				5,
+				5
+			],
+			"team": "enemy"
+		},
+		{
+			"data": "monk",
+			"pos": [
+				6,
+				5
+			],
+			"team": "enemy"
+		},
+		{
+			"data": "archer",
+			"pos": [
+				0,
+				5
+			],
+			"team": "player"
+		},
+		{
+			"data": "warrior",
+			"pos": [
+				1,
+				5
+			],
+			"team": "player"
+		},
+		{
+			"data": "monk",
+			"pos": [
+				0,
+				6
+			],
+			"team": "player"
+		}
+	]
 }
