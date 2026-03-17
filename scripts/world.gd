@@ -84,15 +84,31 @@ func _load_level(path: String) -> void:
 	await hex_grid.load_terrain(terrain_rows, width, height, forest_rows)
 	# Unités
 	for unit_info in data["units"]:
-		var unit_data_path = "res://data/units/" + unit_info["data"] + ".tres"
+		var unit_type: String = unit_info["data"]
+		var unit_team: String = ""
+		var overrides: Dictionary = {}
+		# Lire l'équipe depuis le JSON (nouveau format)
+		if unit_info.has("team"):
+			unit_team = unit_info["team"]
+		else:
+			# Rétrocompatibilité : détecter le préfixe "enemy_"
+			if unit_type.begins_with("enemy_"):
+				unit_type = unit_type.substr(6)  # strip "enemy_"
+				unit_team = "enemy"
+			else:
+				unit_team = "player"
+		# Lire les overrides optionnels
+		if unit_info.has("overrides"):
+			overrides = unit_info["overrides"]
+		var unit_data_path = "res://data/units/" + unit_type + ".tres"
 		var unit_data: UnitData = load(unit_data_path)
 		var pos = Vector2i(int(unit_info["pos"][0]), int(unit_info["pos"][1]))
-		_spawn_unit(unit_data, pos)
+		_spawn_unit(unit_data, pos, unit_team, overrides)
 
-func _spawn_unit(data: UnitData, p_grid_pos: Vector2i) -> void:
+func _spawn_unit(data: UnitData, p_grid_pos: Vector2i, p_team: String = "player", overrides: Dictionary = {}) -> void:
 	var unit = UnitScene.instantiate()
 	units_node.add_child(unit)
-	unit.setup(data, p_grid_pos, hex_grid)
+	unit.setup(data, p_grid_pos, hex_grid, p_team, overrides)
 
 # --- Bouton fin de phase ---
 

@@ -6,6 +6,7 @@
 [ext_resource type="Texture2D" path="res://assets/Tiny Swords/Units/Blue Units/Archer/Archer_Shoot.png" id="4_attack"]
 [ext_resource type="Texture2D" path="res://assets/Tiny Swords/Units/Blue Units/Archer/Arrow.png" id="5_arrow"]
 [ext_resource type="Texture2D" path="res://assets/Tiny Swords/UI Elements/UI Elements/Human Avatars/Avatars_03.png" id="6_avatar"]
+[ext_resource type="Texture2D" path="res://assets/Tiny Swords/UI Elements/UI Elements/Human Avatars/Avatars_22.png" id="7_enemy_avatar"]
 
 [resource]
 script = ExtResource("1_85r4g")
@@ -26,4 +27,5 @@ initiative = 6
 attack_range = 4
 min_attack_range = 2
 avatar_texture = ExtResource("6_avatar")
+enemy_avatar_texture = ExtResource("7_enemy_avatar")
 metadata/_custom_type_script = "uid://bgr051ywya2wd"

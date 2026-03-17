@@ -6,6 +6,7 @@
 [ext_resource type="Texture2D" path="res://assets/Tiny Swords/Units/Blue Units/Warrior/Warrior_Attack1.png" id="4_attack"]
 [ext_resource type="Texture2D" path="res://assets/Tiny Swords/Units/Blue Units/Warrior/Warrior_Guard.png" id="5_guard"]
 [ext_resource type="Texture2D" path="res://assets/Tiny Swords/UI Elements/UI Elements/Human Avatars/Avatars_01.png" id="6_avatar"]
+[ext_resource type="Texture2D" path="res://assets/Tiny Swords/UI Elements/UI Elements/Human Avatars/Avatars_21.png" id="7_enemy_avatar"]
 
 [resource]
 script = ExtResource("1_eb5xf")
@@ -24,4 +25,5 @@ defense = 2
 description = "\"He was the best star pilot in the galaxy, and a cunning warrior\""
 initiative = 4
 avatar_texture = ExtResource("6_avatar")
+enemy_avatar_texture = ExtResource("7_enemy_avatar")
 metadata/_custom_type_script = "uid://bgr051ywya2wd"
