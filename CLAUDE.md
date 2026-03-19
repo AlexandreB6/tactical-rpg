@@ -6,20 +6,43 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 Tactical RPG hexagonal en Godot 4.6.1 (GDScript uniquement, pas de C#), inspiré de Vandal Hearts et Battle Brothers.
 
-- **Godot EXE** : `D:\Godot_v4.6.1*.exe` (à la racine de D:\)
-- **Lancer le jeu** : ouvrir le projet dans Godot puis F5, ou via la CLI : `D:\Godot_v4.6.1.exe --path D:\Projet\tactical-rpg`
-- **Scène principale** : `res://scenes/world/World.tscn`
+- **Godot EXE** : `D:\Projet\Godot_v4.6.1-stable_win64.exe`
+- **Lancer le jeu** : ouvrir le projet dans Godot puis F5, ou via la CLI : `D:\Projet\Godot_v4.6.1-stable_win64.exe --path D:\Projet\tactical-rpg`
+- **Scène principale 3D** : `res://scenes/world/World3D.tscn` (migration 3D en cours)
+- **Ancienne scène 2D** : `res://scenes/world/World.tscn` (conservée pour référence)
 
 ## Architecture
 
-### Flux de données
+### Flux de données (3D)
 
 ```
-UnitData.tres (stats) → Unit.tscn (instance) → Units node (container)
-                                                      ↓
-World.gd (input) → GameManager.gd (tour/IA) → HexGrid.gd (grille)
-                                ↓
-                    UI : StatsPanel, CombatLog, EndScreen
+UnitData.tres (stats) → Unit3D.tscn (instance) → Units3D node (container)
+                                                        ↓
+World3D.gd (input) → GameManager3D.gd (tour/IA) → HexGrid3D.gd (grille)
+                                  ↓
+                      UI : StatsPanel, CombatLog, EndScreen (CanvasLayer, inchangés)
+```
+
+### Architecture 3D
+
+```
+World3D (Node3D)
+├── CameraPivot (Node3D, rotation Q/E par 90°)
+│   └── CameraArm (Node3D, rotation.x = -40°)
+│       └── Camera3D (orthographic, size = 12)
+├── HexGrid3D (Node3D)
+│   ├── MeshInstance3D (hex prism) × N    ← terrain
+│   ├── StaticBody3D + CollisionShape3D × N  ← picking
+│   ├── Sprite3D (décorations) × M        ← arbres/rochers billboard
+│   └── FloatingIsland (MeshInstance3D)    ← bloc sous la map
+├── Units3D (Node3D)
+│   └── Unit3D (Node3D) × K
+│       ├── Sprite3D (body, billboard manuel)
+│       ├── MeshInstance3D (highlight ring)
+│       └── Label3D (nom)
+├── DirectionalLight3D + WorldEnvironment
+├── GameManager3D (Node)
+├── EndScreen / StatsPanel / CombatLog / ActionBar (CanvasLayer)
 ```
 
 ### Système de tours (phases)
@@ -32,12 +55,17 @@ Un **round** = phase joueur (toutes les unités joueur agissent librement) puis 
 
 ### Grille hexagonale
 
-Hexagones **flat-top**, coordonnées **odd-q offset**, taille `HEX_SIZE = 48`. Dimensions dynamiques (chargées depuis le niveau).
+Hexagones **flat-top**, coordonnées **odd-q offset**. Dimensions dynamiques (chargées depuis le niveau).
 
-- `hex_grid.load_terrain(terrain_rows, width, height)` : charge le terrain depuis des données de niveau
-- `hex_to_pixel(q, r)` → position pixel locale (à additionner avec `hex_grid.position`)
-- `pixel_to_hex(pixel_pos)` → coordonnées hex (arrondi cubique, prend la position globale)
+**3D (HexGrid3D)** : `HEX_SIZE = 1.0` (unités 3D), `ELEVATION_UNIT = 0.5`
+- `hex_to_world_local(q, r)` → Vector3 locale (X = q * 1.5, Z = hex spacing, Y = hauteur)
+- `get_cell_world_position(cell)` → Vector3 globale (avec offset grille)
+- `world_to_hex(world_pos)` → Vector2i (par intersection plans Y)
 - `hex_distance(a, b)` → distance en cases (via coordonnées cubiques)
+- Picking : raycast Camera3D → intersection plan Y par hauteur de terrain
+
+**2D (ancien, hex_grid.gd)** : `HEX_SIZE = 48` pixels, `ISO_Y_SCALE = 0.55`
+- `hex_to_pixel(q, r)`, `pixel_to_hex(pixel_pos)`, `hex_distance(a, b)`
 
 ### Unités
 
@@ -117,8 +145,8 @@ Toutes les UI sont des `CanvasLayer` enfants de `World` :
 - ~~Système de sorts~~ → **FAIT** : SpellData resource, Monk (joueur + ennemi), boutons sorts dynamiques, IA sorts
 - ~~Système de murs par comparaison de voisins~~ → **FAIT** : hex blocks solides (5 polygones/hex, z_index = r*2 + q%2)
 - ~~Ligne de vue~~ → **FAIT** : `has_line_of_sight()` via lerp cubique, Forêt/Montagne bloquent la LOS
-- **Bug** : `pixel_to_hex()` ne compense pas l'élévation visuelle → clics décalés sur terrains élevés (collines, etc.)
+- ~~**Bug** : `pixel_to_hex()` ne compense pas l'élévation visuelle~~ → **RÉSOLU** en 3D (raycast par plan Y)
+- ~~Vue isométrique + rotation de la map~~ → **EN COURS** : migration 3D (Issue #8), World3D.tscn
 - Générer des sprites pour les autres personnages
-- Textures hexagones (remplacer les couleurs plates)
 - Améliorer l'IA ennemie (actuellement : se rapproche de la cible la plus proche + attaque)
-- Vue isométrique + rotation de la map (à reprendre — première tentative annulée)
+- Polish 3D : ajuster tailles sprites, éclairage, île flottante, décorations

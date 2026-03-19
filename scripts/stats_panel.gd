@@ -22,7 +22,7 @@ func _ready() -> void:
 	close_button.pressed.connect(_on_close_pressed)
 
 # Remplit et affiche le panel avec les stats de l'unité cliquée
-func show_stats(unit: Unit, terrain_text: String = "") -> void:
+func show_stats(unit, terrain_text: String = "") -> void:
 	name_label.text = unit.unit_name
 	hp_label.text = "HP : " + str(unit.hp) + "/" + str(unit.max_hp)
 	attack_label.text = "ATK : " + str(unit.attack)
