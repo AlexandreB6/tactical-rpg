@@ -1,0 +1,61 @@
+{
+	"name": "L'Archipel",
+	"grid_width": 12,
+	"grid_height": 10,
+	"terrain": [
+		"PPPHWWWWWWPP",
+		"PPHWWWWWWHPP",
+		"PPWWPPHWWWPP",
+		"HWWPPPHWWWHP",
+		"WWWPPPWWWWHP",
+		"WWWPPPWWWWPP",
+		"HWWHHPWWWPPP",
+		"PPWWHHWWPPPP",
+		"PPHWWWWWHPPP",
+		"PPPHWWWHHPPP"
+	],
+	"units": [
+		{
+			"data": "warrior",
+			"team": "player",
+			"pos": [3, 3]
+		},
+		{
+			"data": "archer",
+			"team": "player",
+			"pos": [4, 4]
+		},
+		{
+			"data": "monk",
+			"team": "player",
+			"pos": [4, 3]
+		},
+		{
+			"data": "lancer",
+			"team": "player",
+			"pos": [5, 5]
+		},
+		{
+			"data": "warrior",
+			"team": "enemy",
+			"pos": [10, 1],
+			"overrides": {"hp": 14, "attack": 5}
+		},
+		{
+			"data": "archer",
+			"team": "enemy",
+			"pos": [10, 4]
+		},
+		{
+			"data": "lancer",
+			"team": "enemy",
+			"pos": [9, 6]
+		},
+		{
+			"data": "monk",
+			"team": "enemy",
+			"pos": [10, 5],
+			"overrides": {"unit_name": "Prêtre des Marées", "spells": ["heal", "fireball"]}
+		}
+	]
+}
