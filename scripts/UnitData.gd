@@ -24,7 +24,12 @@ class_name UnitData
 @export var enemy_avatar_texture: Texture2D = null
 
 enum ClassType { PHYSICAL, MAGIC }
+enum DamageType { SLASHING, PIERCING, BLUNT, MAGIC }
+enum ArmorType { NONE, LIGHT, CHAIN, PLATE }
+
 @export var class_type: ClassType = ClassType.PHYSICAL
+@export var damage_type: DamageType = DamageType.SLASHING
+@export var armor_type: ArmorType = ArmorType.NONE
 @export var spells: Array[SpellData] = []
 @export var sprite_cast_texture: Texture2D = null
 @export var sprite_cast_hframes: int = 1
