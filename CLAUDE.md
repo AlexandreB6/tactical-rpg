@@ -73,7 +73,25 @@ Chaque unité est une instance de `Unit.tscn` initialisée via `unit.setup(data:
 
 Un seul `.tres` par classe (warrior, archer, monk, lancer). L'équipe et les overrides de stats sont déterminés au spawn depuis le JSON du niveau. Les sprites sont automatiquement remappés (`Blue Units` → `Black Units`) pour les ennemis.
 
-Stats : `hp`, `attack`, `defense`, `move_range`, `initiative`, `team` (`"player"` ou `"enemy"`).
+Stats : `hp`, `attack`, `defense`, `move_range`, `initiative`, `team` (`"player"` ou `"enemy"`), `damage_type`, `armor_type`.
+
+### Système de dégâts (types d'arme × types d'armure)
+
+Chaque unité a un `damage_type` (SLASHING, PIERCING, BLUNT, MAGIC) et un `armor_type` (NONE, LIGHT, CHAIN, PLATE).
+Les sorts ont aussi un `damage_type` (défaut MAGIC).
+
+Table de multiplicateurs (armor × damage) :
+
+|            | Tranchant | Perçant | Contondant | Magique |
+|------------|-----------|---------|------------|---------|
+| **Aucune** | x1.2      | x1.0    | x0.8       | x1.2    |
+| **Légère** | x0.8      | x1.0    | x1.0       | x1.0    |
+| **Mailles**| x0.6      | x1.2    | x1.0       | x1.0    |
+| **Plate**  | x0.5      | x0.7    | x1.3       | x0.8    |
+
+Formule : `dégâts = max(1, int((atk_power - def_power) * multiplicateur))`
+
+Le multiplicateur est affiché dans le combat log quand ≠ 1.0 (`[efficace x1.3]` ou `[résisté x0.5]`).
 
 Highlights via `unit.set_highlight(state)` : `"active"` (anneau jaune), `"stats"` (anneau cyan), `""` (aucun).
 
@@ -97,7 +115,7 @@ Format JSON :
 - `units[].data` : nom de la classe (fichier `.tres` dans `res://data/units/` sans extension). Un seul `.tres` par classe, plus de doublons `enemy_*`.
 - `units[].team` : `"player"` ou `"enemy"` (obligatoire). Rétrocompat : si absent, le préfixe `enemy_` dans `data` est détecté.
 - `units[].pos` : `[q, r]` coordonnées hex
-- `units[].overrides` : (optionnel) dictionnaire de stats à surcharger (hp, attack, defense, move_range, initiative, attack_range, min_attack_range, unit_name, spells)
+- `units[].overrides` : (optionnel) dictionnaire de stats à surcharger (hp, attack, defense, move_range, initiative, attack_range, min_attack_range, unit_name, spells, damage_type, armor_type)
 
 `World.level_path` est `@export` → modifiable dans l'Inspector pour changer de niveau.
 

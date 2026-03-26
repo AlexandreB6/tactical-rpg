@@ -25,8 +25,8 @@ func _ready() -> void:
 func show_stats(unit, terrain_text: String = "") -> void:
 	name_label.text = unit.unit_name
 	hp_label.text = "HP : " + str(unit.hp) + "/" + str(unit.max_hp)
-	attack_label.text = "ATK : " + str(unit.attack)
-	defense_label.text = "DEF : " + str(unit.defense)
+	attack_label.text = "ATK : " + str(unit.attack) + " (" + Unit.get_damage_type_name(unit.damage_type) + ")"
+	defense_label.text = "DEF : " + str(unit.defense) + " (" + Unit.get_armor_type_name(unit.armor_type) + ")"
 	defend_bonus_label.visible = unit.is_defending
 	terrain_label.text = terrain_text
 	terrain_label.visible = terrain_text != ""

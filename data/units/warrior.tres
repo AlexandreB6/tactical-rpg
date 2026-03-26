@@ -26,4 +26,5 @@ description = "\"He was the best star pilot in the galaxy, and a cunning warrior
 initiative = 4
 avatar_texture = ExtResource("6_avatar")
 enemy_avatar_texture = ExtResource("7_enemy_avatar")
+armor_type = 2
 metadata/_custom_type_script = "uid://bgr051ywya2wd"

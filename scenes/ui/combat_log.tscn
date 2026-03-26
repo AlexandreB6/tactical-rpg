@@ -34,11 +34,23 @@ layout_mode = 2
 text = "▼"
 
 [node name="ScrollContainer" type="ScrollContainer" parent="PanelContainer/MarginContainer/VBoxContainer" unique_id=1893249990]
-custom_minimum_size = Vector2(260, 0)
+custom_minimum_size = Vector2(244, 0)
 layout_mode = 2
+horizontal_scroll_mode = 0
 
 [node name="LogLabel" type="Label" parent="PanelContainer/MarginContainer/VBoxContainer/ScrollContainer" unique_id=678951469]
-custom_minimum_size = Vector2(240, 0)
 layout_mode = 2
+size_flags_horizontal = 3
 theme_override_colors/font_color = Color(1, 1, 1, 1)
 autowrap_mode = 2
+
+[node name="ResizeHandle" type="Label" parent="PanelContainer/MarginContainer/VBoxContainer"]
+custom_minimum_size = Vector2(0, 16)
+layout_mode = 2
+size_flags_horizontal = 8
+theme_override_colors/font_color = Color(1, 1, 1, 0.4)
+horizontal_alignment = 2
+vertical_alignment = 2
+text = "⋱"
+mouse_default_cursor_shape = 12
+mouse_filter = 0
