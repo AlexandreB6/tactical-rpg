@@ -74,7 +74,7 @@ func _setup_icon_button(button: Button, text: String, icon_tex: Texture2D) -> vo
 	label.add_theme_constant_override("shadow_offset_y", 1)
 	button.add_child(label)
 
-func setup_for_unit(unit: Unit) -> void:
+func setup_for_unit(unit) -> void:
 	_close_spells_panel()
 	# Nettoyer l'ancien bouton Sorts
 	if _spells_button != null:

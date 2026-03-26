@@ -1,6 +1,6 @@
 [gd_scene format=3 uid="uid://cxkf8d3nm2v1p"]
 
-[ext_resource type="Script" uid="uid://dv3m9qxl2wpr4" path="res://scripts/action_bar.gd" id="1_r5kth"]
+[ext_resource type="Script" path="res://scripts/action_bar.gd" id="1_r5kth"]
 
 [node name="ActionBar" type="CanvasLayer"]
 script = ExtResource("1_r5kth")

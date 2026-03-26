@@ -1,0 +1,58 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://scripts/world_3d.gd" id="1_world3d"]
+[ext_resource type="Script" path="res://scripts/hex_grid_3d.gd" id="2_hexgrid3d"]
+[ext_resource type="Script" path="res://scripts/camera_3d_controller.gd" id="3_camera3d"]
+[ext_resource type="Script" path="res://scripts/game_manager_3d.gd" id="4_gm3d"]
+[ext_resource type="PackedScene" path="res://scenes/ui/end_screen.tscn" id="5_endscreen"]
+[ext_resource type="PackedScene" path="res://scenes/ui/stats_panel.tscn" id="6_statspanel"]
+[ext_resource type="PackedScene" path="res://scenes/ui/combat_log.tscn" id="7_combatlog"]
+[ext_resource type="PackedScene" path="res://scenes/ui/action_bar.tscn" id="8_actionbar"]
+
+[sub_resource type="Environment" id="SubResource_env"]
+background_mode = 1
+background_color = Color(0.18, 0.22, 0.28, 1)
+ambient_light_source = 2
+ambient_light_color = Color(0.6, 0.6, 0.65, 1)
+ambient_light_energy = 0.2
+tonemap_mode = 2
+
+[node name="World3D" type="Node3D"]
+script = ExtResource("1_world3d")
+
+[node name="HexGrid3D" type="Node3D" parent="."]
+script = ExtResource("2_hexgrid3d")
+
+[node name="Units3D" type="Node3D" parent="."]
+
+[node name="CameraPivot" type="Node3D" parent="."]
+script = ExtResource("3_camera3d")
+
+[node name="CameraArm" type="Node3D" parent="CameraPivot"]
+transform = Transform3D(1, 0, 0, 0, 0.766044, 0.642788, 0, -0.642788, 0.766044, 0, 0, 0)
+
+[node name="Camera3D" type="Camera3D" parent="CameraPivot/CameraArm"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 20)
+projection = 1
+size = 12.0
+far = 100.0
+
+[node name="DirectionalLight3D" type="DirectionalLight3D" parent="."]
+transform = Transform3D(0.866025, -0.25, 0.433013, 0, 0.866025, 0.5, -0.5, -0.433013, 0.75, 0, 10, 0)
+shadow_enabled = false
+directional_shadow_mode = 1
+light_energy = 0.6
+
+[node name="WorldEnvironment" type="WorldEnvironment" parent="."]
+environment = SubResource("SubResource_env")
+
+[node name="GameManager3D" type="Node" parent="."]
+script = ExtResource("4_gm3d")
+
+[node name="EndScreen" parent="." instance=ExtResource("5_endscreen")]
+
+[node name="StatsPanel" parent="." instance=ExtResource("6_statspanel")]
+
+[node name="CombatLog" parent="." instance=ExtResource("7_combatlog")]
+
+[node name="ActionBar" parent="." instance=ExtResource("8_actionbar")]

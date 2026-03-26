@@ -166,4 +166,4 @@ func _on_editor_pressed() -> void:
 
 func _start_level(level_path: String) -> void:
 	GameState.selected_level_path = level_path
-	get_tree().change_scene_to_file("res://scenes/world/World.tscn")
+	get_tree().change_scene_to_file("res://scenes/world/World3D.tscn")

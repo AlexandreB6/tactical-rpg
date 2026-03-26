@@ -22,11 +22,11 @@ func _ready() -> void:
 	close_button.pressed.connect(_on_close_pressed)
 
 # Remplit et affiche le panel avec les stats de l'unité cliquée
-func show_stats(unit: Unit, terrain_text: String = "") -> void:
+func show_stats(unit, terrain_text: String = "") -> void:
 	name_label.text = unit.unit_name
 	hp_label.text = "HP : " + str(unit.hp) + "/" + str(unit.max_hp)
-	attack_label.text = "ATK : " + str(unit.attack) + " (" + Unit.get_damage_type_name(unit.damage_type) + ")"
-	defense_label.text = "DEF : " + str(unit.defense) + " (" + Unit.get_armor_type_name(unit.armor_type) + ")"
+	attack_label.text = "ATK : " + str(unit.attack) + " (" + _damage_type_name(unit.damage_type) + ")"
+	defense_label.text = "DEF : " + str(unit.defense) + " (" + _armor_type_name(unit.armor_type) + ")"
 	defend_bonus_label.visible = unit.is_defending
 	terrain_label.text = terrain_text
 	terrain_label.visible = terrain_text != ""
@@ -57,3 +57,19 @@ func show_stats(unit: Unit, terrain_text: String = "") -> void:
 func _on_close_pressed() -> void:
 	emit_signal("panel_closed")
 	hide()
+
+static func _damage_type_name(dmg_type: int) -> String:
+	match dmg_type:
+		UnitData.DamageType.SLASHING: return "tranchant"
+		UnitData.DamageType.PIERCING: return "perçant"
+		UnitData.DamageType.BLUNT: return "contondant"
+		UnitData.DamageType.MAGIC: return "magique"
+	return ""
+
+static func _armor_type_name(arm_type: int) -> String:
+	match arm_type:
+		UnitData.ArmorType.NONE: return "aucune"
+		UnitData.ArmorType.LIGHT: return "légère"
+		UnitData.ArmorType.CHAIN: return "mailles"
+		UnitData.ArmorType.PLATE: return "plate"
+	return ""

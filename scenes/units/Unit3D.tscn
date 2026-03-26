@@ -1,0 +1,23 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://scripts/unit_3d.gd" id="1_unit3d"]
+
+[node name="Unit3D" type="Node3D"]
+script = ExtResource("1_unit3d")
+
+[node name="HighlightMesh" type="MeshInstance3D" parent="."]
+
+[node name="Body" type="Sprite3D" parent="."]
+position = Vector3(0, 0.9, 0)
+billboard = 0
+texture_filter = 0
+alpha_cut = 2
+
+[node name="NameLabel" type="Label3D" parent="."]
+position = Vector3(0, 2.0, 0)
+visible = false
+billboard = 1
+no_depth_test = true
+pixel_size = 0.01
+font_size = 32
+text = "Unit"
