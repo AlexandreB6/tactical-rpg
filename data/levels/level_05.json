@@ -1,0 +1,77 @@
+{
+	"name": "Le Pont Brisé",
+	"grid_width": 12,
+	"grid_height": 10,
+	"terrain": [
+		"PPHHMMMMHPPP",
+		"PPHHMMMHHPPP",
+		"PPPPFHHHPPPP",
+		"PPPPFPPPPPPP",
+		"PPPPPPWWPPPP",
+		"PPPPPPWWPPPP",
+		"PPPPPPPFPPPP",
+		"PPPPHHPFPPPP",
+		"PPPHHMMMHPPP",
+		"PPPHMMMMHPPP"
+	],
+	"units": [
+		{
+			"data": "warrior",
+			"team": "player",
+			"pos": [1, 3]
+		},
+		{
+			"data": "warrior",
+			"team": "player",
+			"pos": [1, 6]
+		},
+		{
+			"data": "archer",
+			"team": "player",
+			"pos": [2, 4]
+		},
+		{
+			"data": "monk",
+			"team": "player",
+			"pos": [2, 5]
+		},
+		{
+			"data": "lancer",
+			"team": "player",
+			"pos": [1, 5]
+		},
+		{
+			"data": "warrior",
+			"team": "enemy",
+			"pos": [10, 3],
+			"overrides": {"hp": 14, "attack": 5, "defense": 3}
+		},
+		{
+			"data": "warrior",
+			"team": "enemy",
+			"pos": [10, 6],
+			"overrides": {"hp": 12, "attack": 4}
+		},
+		{
+			"data": "archer",
+			"team": "enemy",
+			"pos": [9, 4]
+		},
+		{
+			"data": "archer",
+			"team": "enemy",
+			"pos": [9, 5]
+		},
+		{
+			"data": "lancer",
+			"team": "enemy",
+			"pos": [10, 5]
+		},
+		{
+			"data": "monk",
+			"team": "enemy",
+			"pos": [10, 4],
+			"overrides": {"unit_name": "Prêtre Sombre", "spells": ["heal", "fireball"]}
+		}
+	]
+}
