@@ -98,7 +98,7 @@ func _process_enemy(enemy: Unit3D) -> void:
 		var start_cell = enemy.grid_pos
 		var path = hex_grid.find_path(enemy.grid_pos, best_cell, blocked, enemy.move_range)
 		enemy.grid_pos = best_cell
-		combat_log.add_entry(enemy.unit_name + " se déplace")
+		combat_log.add_entry(enemy.unit_name + " se déplace", enemy.unit_name)
 		await enemy.move_along_path(path, start_cell)
 	if enemy.can_attack_from(enemy.grid_pos, target.grid_pos, hex_grid):
 		await _enemy_attack(enemy, target)
@@ -110,7 +110,8 @@ func _choose_target(enemy: Unit3D, players: Array[Unit3D]) -> Unit3D:
 		var dist = hex_grid.hex_distance(enemy.grid_pos, player.grid_pos)
 		var height_diff = hex_grid.get_height_at(enemy.grid_pos) - hex_grid.get_height_at(player.grid_pos)
 		var terrain_def = hex_grid.get_terrain_def_bonus(player.grid_pos)
-		var damage = Unit3D.calc_damage(enemy.attack, player, height_diff, terrain_def)
+		var calc = Unit3D.calc_damage(enemy.attack, player, height_diff, terrain_def, enemy.damage_type)
+		var damage = calc.damage
 		var score: float = 0.0
 		if damage >= player.hp:
 			score += 100.0
@@ -127,10 +128,10 @@ func _choose_target(enemy: Unit3D, players: Array[Unit3D]) -> Unit3D:
 func _enemy_attack(enemy: Unit3D, target: Unit3D) -> void:
 	var height_diff = hex_grid.get_height_at(enemy.grid_pos) - hex_grid.get_height_at(target.grid_pos)
 	var terrain_def = hex_grid.get_terrain_def_bonus(target.grid_pos)
-	var damage = Unit3D.calc_damage(enemy.attack, target, height_diff, terrain_def)
-	combat_log.add_entry(Unit3D.build_attack_log(enemy.unit_name, target.unit_name, damage, height_diff, terrain_def))
+	var result = Unit3D.calc_damage(enemy.attack, target, height_diff, terrain_def, enemy.damage_type)
+	combat_log.add_entry(Unit3D.build_attack_log(enemy.unit_name, target.unit_name, result, height_diff, terrain_def, enemy.damage_type, target.armor_type), enemy.unit_name)
 	await enemy.play_attack_anim(target.position)
-	await target.take_damage(damage)
+	await target.take_damage(result.damage)
 	check_victory()
 
 func _find_best_move(enemy: Unit3D, target: Unit3D) -> Vector2i:
@@ -184,10 +185,12 @@ func _try_enemy_offensive_spell(enemy: Unit3D, target: Unit3D) -> bool:
 			continue
 		if not enemy.can_cast_spell_on(spell, enemy.grid_pos, target.grid_pos, hex_grid):
 			continue
-		var spell_damage = max(1, spell.power - target.get_effective_defense())
+		var spell_raw = spell.power - target.get_effective_defense()
+		var spell_mult = Unit3D.DAMAGE_MULTIPLIERS[target.armor_type][spell.damage_type]
+		var spell_damage = max(1, int(spell_raw * spell_mult))
 		var height_diff = hex_grid.get_height_at(enemy.grid_pos) - hex_grid.get_height_at(target.grid_pos)
 		var terrain_def = hex_grid.get_terrain_def_bonus(target.grid_pos)
-		var phys_damage = Unit3D.calc_damage(enemy.attack, target, height_diff, terrain_def)
+		var phys_damage = Unit3D.calc_damage(enemy.attack, target, height_diff, terrain_def, enemy.damage_type).damage
 		if spell_damage >= phys_damage or not enemy.can_attack_from(enemy.grid_pos, target.grid_pos, hex_grid):
 			await _enemy_cast_spell(enemy, target, spell)
 			return true
@@ -214,11 +217,21 @@ func _enemy_cast_spell(enemy: Unit3D, target: Unit3D, spell: SpellData) -> void:
 		effect.queue_free()
 	if spell.target_type == SpellData.TargetType.ALLY:
 		await target.heal(spell.power)
-		combat_log.add_entry(enemy.unit_name + " lance " + spell.spell_name + " sur " + target.unit_name + " (+" + str(spell.power) + " HP)")
+		combat_log.add_entry(enemy.unit_name + " lance " + spell.spell_name + " sur " + target.unit_name + " → +" + str(spell.power) + " HP", enemy.unit_name)
 	else:
 		var terrain_def = hex_grid.get_terrain_def_bonus(target.grid_pos)
-		var damage = max(1, spell.power - target.get_effective_defense() - terrain_def)
-		combat_log.add_entry(enemy.unit_name + " lance " + spell.spell_name + " sur " + target.unit_name + " (-" + str(damage) + " HP)")
+		var def_power = target.get_effective_defense() + terrain_def
+		var raw = spell.power - def_power
+		var multiplier = Unit3D.DAMAGE_MULTIPLIERS[target.armor_type][spell.damage_type]
+		var damage = max(1, int(raw * multiplier))
+		var log_text = enemy.unit_name + " lance " + spell.spell_name + " sur " + target.unit_name + " → -" + str(damage) + " HP"
+		var detail = "  PWR " + str(spell.power) + " vs DEF " + str(def_power)
+		if terrain_def > 0:
+			detail += " (+" + str(terrain_def) + " terrain)"
+		detail += " = " + str(raw) + " × " + str(multiplier)
+		detail += " (" + Unit3D.get_damage_type_name(spell.damage_type) + " vs " + Unit3D.get_armor_type_name(target.armor_type) + ")"
+		detail += " = " + str(damage)
+		combat_log.add_entry(log_text + "\n" + detail, enemy.unit_name)
 		await target.take_damage(damage)
 		check_victory()
 

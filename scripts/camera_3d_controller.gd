@@ -21,6 +21,7 @@ var _target_zoom: float = 12.0
 var _dragging: bool = false
 var _drag_start_mouse: Vector2 = Vector2.ZERO
 var _drag_start_pos: Vector3 = Vector3.ZERO
+const PAN_KEYBOARD_SPEED: float = 15.0
 
 # --- Références ---
 @onready var camera_arm: Node3D = $CameraArm
@@ -43,9 +44,9 @@ func _unhandled_input(event: InputEvent) -> void:
 		return
 
 	if event is InputEventKey and event.pressed and not event.echo:
-		if event.keycode == KEY_Q:
+		if event.physical_keycode == KEY_Q:
 			_rotate_camera(-1)
-		elif event.keycode == KEY_E:
+		elif event.physical_keycode == KEY_E:
 			_rotate_camera(1)
 
 	if event is InputEventMouseButton:
@@ -72,7 +73,27 @@ func _unhandled_input(event: InputEvent) -> void:
 		cam_forward.y = 0
 		cam_forward = cam_forward.normalized()
 		var pan_speed = _target_zoom * 0.003
-		position = _drag_start_pos + (cam_right * -delta.x + cam_forward * delta.y) * pan_speed
+		position = _drag_start_pos + (cam_right * delta.x + cam_forward * -delta.y) * pan_speed
+
+func _process(delta: float) -> void:
+	var input_dir = Vector2.ZERO
+	if Input.is_physical_key_pressed(KEY_W):
+		input_dir.y -= 1
+	if Input.is_physical_key_pressed(KEY_S):
+		input_dir.y += 1
+	if Input.is_physical_key_pressed(KEY_A):
+		input_dir.x -= 1
+	if Input.is_physical_key_pressed(KEY_D):
+		input_dir.x += 1
+	if input_dir != Vector2.ZERO:
+		input_dir = input_dir.normalized()
+		var cam_right = -global_transform.basis.x
+		var cam_forward = -global_transform.basis.z
+		cam_right.y = 0
+		cam_right = cam_right.normalized()
+		cam_forward.y = 0
+		cam_forward = cam_forward.normalized()
+		position += (cam_right * -input_dir.x + cam_forward * -input_dir.y) * PAN_KEYBOARD_SPEED * delta
 
 func _rotate_camera(direction: int) -> void:
 	if _is_rotating:

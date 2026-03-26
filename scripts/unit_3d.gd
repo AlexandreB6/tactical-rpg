@@ -23,6 +23,8 @@ var description: String = ""
 var initiative: int = 5
 var avatar_texture: Texture2D = null
 var class_type: int = 0  # 0=PHYSICAL, 1=MAGIC
+var damage_type: int = 0  # UnitData.DamageType
+var armor_type: int = 0   # UnitData.ArmorType
 var spells: Array[SpellData] = []
 
 # --- État en jeu ---
@@ -103,6 +105,8 @@ func setup(data: UnitData, p_grid_pos: Vector2i, hex_grid: Node3D, p_team: Strin
 	_projectile_texture = data.projectile_texture
 	_sprite_scale_factor = data.sprite_scale_factor
 	class_type = data.class_type
+	damage_type = data.damage_type
+	armor_type = data.armor_type
 	spells = data.spells.duplicate()
 
 	_apply_overrides(overrides)
@@ -135,6 +139,10 @@ func _apply_overrides(overrides: Dictionary) -> void:
 				min_attack_range = overrides[key]
 			"unit_name":
 				unit_name = overrides[key]
+			"damage_type":
+				damage_type = overrides[key]
+			"armor_type":
+				armor_type = overrides[key]
 			"spells":
 				spells.clear()
 				for spell_name in overrides[key]:
@@ -474,10 +482,28 @@ func _clear_highlight_ring() -> void:
 
 # --- Combat helpers (copiés de unit.gd) ---
 
-static func calc_damage(atk: int, target_unit: Unit3D, height_diff: int = 0, terrain_def_bonus: int = 0) -> int:
+# Table de multiplicateurs : DAMAGE_MULTIPLIERS[armor_type][damage_type]
+#                          SLASHING  PIERCING  BLUNT  MAGIC
+const DAMAGE_MULTIPLIERS = [
+	[1.2, 1.0, 0.8, 1.2],  # NONE
+	[0.8, 1.0, 1.0, 1.0],  # LIGHT
+	[0.6, 1.2, 1.0, 1.0],  # CHAIN
+	[0.5, 0.7, 1.3, 0.8],  # PLATE
+]
+
+static func calc_damage(atk: int, target_unit: Unit3D, height_diff: int = 0, terrain_def_bonus: int = 0, dmg_type: int = 0) -> Dictionary:
 	var attack_power = atk + max(0, height_diff)
 	var defense_power = target_unit.get_effective_defense() + terrain_def_bonus + max(0, -height_diff)
-	return max(1, attack_power - defense_power)
+	var raw_damage = attack_power - defense_power
+	var multiplier = DAMAGE_MULTIPLIERS[target_unit.armor_type][dmg_type]
+	var final_damage = max(1, int(raw_damage * multiplier))
+	return {
+		"damage": final_damage,
+		"atk_power": attack_power,
+		"def_power": defense_power,
+		"raw": raw_damage,
+		"multiplier": multiplier,
+	}
 
 func get_effective_defense() -> int:
 	return defense + (1 if is_defending else 0)
@@ -494,15 +520,39 @@ func can_cast_spell_on(spell: SpellData, from: Vector2i, target_pos: Vector2i, p
 		return false
 	return true
 
-static func build_attack_log(attacker_name: String, target_name: String, damage: int, height_diff: int, terrain_def: int) -> String:
-	var text = attacker_name + " attaque " + target_name + " (-" + str(damage) + " HP)"
+static func get_damage_type_name(dmg_type: int) -> String:
+	match dmg_type:
+		UnitData.DamageType.SLASHING: return "tranchant"
+		UnitData.DamageType.PIERCING: return "perçant"
+		UnitData.DamageType.BLUNT: return "contondant"
+		UnitData.DamageType.MAGIC: return "magique"
+	return ""
+
+static func get_armor_type_name(arm_type: int) -> String:
+	match arm_type:
+		UnitData.ArmorType.NONE: return "aucune"
+		UnitData.ArmorType.LIGHT: return "légère"
+		UnitData.ArmorType.CHAIN: return "mailles"
+		UnitData.ArmorType.PLATE: return "plate"
+	return ""
+
+static func build_attack_log(attacker_name: String, target_name: String, result: Dictionary, height_diff: int, terrain_def: int, dmg_type: int = -1, armor_type: int = -1) -> String:
+	var text = attacker_name + " attaque " + target_name + " → -" + str(result.damage) + " HP"
+	var detail = "  ATK " + str(result.atk_power)
 	if height_diff > 0:
-		text += " [hauteur +" + str(height_diff) + " ATK]"
-	elif height_diff < 0:
-		text += " [hauteur +" + str(-height_diff) + " DEF]"
+		detail += " (+" + str(height_diff) + " hauteur)"
+	detail += " vs DEF " + str(result.def_power)
+	if height_diff < 0:
+		detail += " (+" + str(-height_diff) + " hauteur)"
 	if terrain_def > 0:
-		text += " [terrain +" + str(terrain_def) + " DEF]"
-	return text
+		detail += " (+" + str(terrain_def) + " terrain)"
+	detail += " = " + str(result.raw)
+	if dmg_type >= 0 and armor_type >= 0:
+		var mult = result.multiplier
+		detail += " × " + str(mult)
+		detail += " (" + get_damage_type_name(dmg_type) + " vs " + get_armor_type_name(armor_type) + ")"
+	detail += " = " + str(result.damage)
+	return text + "\n" + detail
 
 func activate_defend() -> void:
 	is_defending = true

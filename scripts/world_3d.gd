@@ -481,7 +481,7 @@ func _handle_spell_target_click(clicked_unit, cell: Vector2i) -> void:
 # --- Actions ---
 
 func _execute_move(unit: Unit3D, cell: Vector2i) -> void:
-	combat_log.add_entry(unit.unit_name + " se déplace")
+	combat_log.add_entry(unit.unit_name + " se déplace", unit.unit_name)
 	pre_move_pos = unit.grid_pos
 	var blocked = _get_blocked_cells(unit)
 	var start_cell = unit.grid_pos
@@ -508,10 +508,10 @@ func _execute_attack(attacker: Unit3D, target: Unit3D) -> void:
 	is_animating = true
 	var height_diff = hex_grid.get_height_at(attacker.grid_pos) - hex_grid.get_height_at(target.grid_pos)
 	var terrain_def = hex_grid.get_terrain_def_bonus(target.grid_pos)
-	var damage = Unit3D.calc_damage(attacker.attack, target, height_diff, terrain_def)
-	combat_log.add_entry(Unit3D.build_attack_log(attacker.unit_name, target.unit_name, damage, height_diff, terrain_def))
+	var result = Unit3D.calc_damage(attacker.attack, target, height_diff, terrain_def, attacker.damage_type)
+	combat_log.add_entry(Unit3D.build_attack_log(attacker.unit_name, target.unit_name, result, height_diff, terrain_def, attacker.damage_type, target.armor_type), attacker.unit_name)
 	await attacker.play_attack_anim(target.position)
-	await target.take_damage(damage)
+	await target.take_damage(result.damage)
 	is_animating = false
 	game_manager.check_victory()
 	game_manager.notify_unit_done(attacker)
@@ -524,12 +524,22 @@ func _execute_spell(caster: Unit3D, target: Unit3D, spell: SpellData) -> void:
 	await _play_spell_effect(target, spell)
 	if spell.target_type == SpellData.TargetType.ALLY:
 		await target.heal(spell.power)
-		combat_log.add_entry(caster.unit_name + " lance " + spell.spell_name + " sur " + target.unit_name + " (+" + str(spell.power) + " HP)")
+		combat_log.add_entry(caster.unit_name + " lance " + spell.spell_name + " sur " + target.unit_name + " → +" + str(spell.power) + " HP", caster.unit_name)
 	else:
 		var height_diff = hex_grid.get_height_at(caster.grid_pos) - hex_grid.get_height_at(target.grid_pos)
 		var terrain_def = hex_grid.get_terrain_def_bonus(target.grid_pos)
-		var damage = max(1, spell.power - target.get_effective_defense() - terrain_def)
-		combat_log.add_entry(caster.unit_name + " lance " + spell.spell_name + " sur " + target.unit_name + " (-" + str(damage) + " HP)")
+		var def_power = target.get_effective_defense() + terrain_def
+		var raw = spell.power - def_power
+		var multiplier = Unit3D.DAMAGE_MULTIPLIERS[target.armor_type][spell.damage_type]
+		var damage = max(1, int(raw * multiplier))
+		var log_text = caster.unit_name + " lance " + spell.spell_name + " sur " + target.unit_name + " → -" + str(damage) + " HP"
+		var detail = "  PWR " + str(spell.power) + " vs DEF " + str(def_power)
+		if terrain_def > 0:
+			detail += " (+" + str(terrain_def) + " terrain)"
+		detail += " = " + str(raw) + " × " + str(multiplier)
+		detail += " (" + Unit3D.get_damage_type_name(spell.damage_type) + " vs " + Unit3D.get_armor_type_name(target.armor_type) + ")"
+		detail += " = " + str(damage)
+		combat_log.add_entry(log_text + "\n" + detail, caster.unit_name)
 		await target.take_damage(damage)
 	is_animating = false
 	game_manager.check_victory()
@@ -596,6 +606,7 @@ func _on_end_turn_requested() -> void:
 		return
 	var unit = selected_unit
 	_clear_ui_state()
+	combat_log.add_entry(unit.unit_name + " termine son tour sans agir.", unit.unit_name)
 	game_manager.notify_unit_done(unit)
 
 func _on_cancel_requested() -> void:
@@ -616,7 +627,7 @@ func _on_defend_requested() -> void:
 	var unit = selected_unit
 	_clear_ui_state()
 	unit.activate_defend()
-	combat_log.add_entry(unit.unit_name + " se défend (+1 DEF)")
+	combat_log.add_entry(unit.unit_name + " se défend (+1 DEF)", unit.unit_name)
 	game_manager.notify_unit_done(unit)
 
 # --- Callbacks phases ---
