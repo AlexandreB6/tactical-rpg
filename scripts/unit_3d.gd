@@ -163,7 +163,7 @@ func _remap_texture(tex: Texture2D) -> Texture2D:
 		return null
 	var path = tex.resource_path
 	if "Blue Units" in path:
-		var new_path = path.replace("Blue Units", "Black Units")
+		var new_path = path.replace("Blue Units", "Red Units")
 		var remapped = load(new_path)
 		if remapped:
 			return remapped

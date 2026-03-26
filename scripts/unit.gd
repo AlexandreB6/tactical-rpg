@@ -160,7 +160,7 @@ func _apply_overrides(overrides: Dictionary) -> void:
 					if spell:
 						spells.append(spell)
 
-# Remplace "Blue Units" par "Black Units" dans les chemins de textures
+# Remplace "Blue Units" par "Red Units" dans les chemins de textures
 func _remap_sprites_for_team() -> void:
 	_idle_texture = _remap_texture(_idle_texture)
 	_run_texture = _remap_texture(_run_texture)
@@ -174,7 +174,7 @@ func _remap_texture(tex: Texture2D) -> Texture2D:
 		return null
 	var path = tex.resource_path
 	if "Blue Units" in path:
-		var new_path = path.replace("Blue Units", "Black Units")
+		var new_path = path.replace("Blue Units", "Red Units")
 		var remapped = load(new_path)
 		if remapped:
 			return remapped
