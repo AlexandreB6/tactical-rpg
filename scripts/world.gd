@@ -552,8 +552,8 @@ func _execute_attack(attacker: Unit, target: Unit) -> void:
 	is_animating = true
 	var height_diff = hex_grid.get_height_at(attacker.grid_pos) - hex_grid.get_height_at(target.grid_pos)
 	var terrain_def = hex_grid.get_terrain_def_bonus(target.grid_pos)
-	var damage = Unit.calc_damage(attacker.attack, target, height_diff, terrain_def)
-	combat_log.add_entry(Unit.build_attack_log(attacker.unit_name, target.unit_name, damage, height_diff, terrain_def))
+	var damage = Unit.calc_damage(attacker.attack, target, height_diff, terrain_def, attacker.damage_type)
+	combat_log.add_entry(Unit.build_attack_log(attacker.unit_name, target.unit_name, damage, height_diff, terrain_def, attacker.damage_type, target.armor_type))
 	await attacker.play_attack_anim(target.position)
 	await target.take_damage(damage)
 	is_animating = false
@@ -572,8 +572,14 @@ func _execute_spell(caster: Unit, target: Unit, spell: SpellData) -> void:
 	else:
 		var height_diff = hex_grid.get_height_at(caster.grid_pos) - hex_grid.get_height_at(target.grid_pos)
 		var terrain_def = hex_grid.get_terrain_def_bonus(target.grid_pos)
-		var damage = max(1, spell.power - target.get_effective_defense() - terrain_def)
-		combat_log.add_entry(caster.unit_name + " lance " + spell.spell_name + " sur " + target.unit_name + " (-" + str(damage) + " HP)")
+		var raw = spell.power - target.get_effective_defense() - terrain_def
+		var multiplier = Unit.DAMAGE_MULTIPLIERS[target.armor_type][spell.damage_type]
+		var damage = max(1, int(raw * multiplier))
+		var log_text = caster.unit_name + " lance " + spell.spell_name + " sur " + target.unit_name + " (-" + str(damage) + " HP)"
+		if multiplier != 1.0:
+			var label = "efficace" if multiplier > 1.0 else "résisté"
+			log_text += " [" + label + " x" + str(multiplier) + "]"
+		combat_log.add_entry(log_text)
 		await target.take_damage(damage)
 	is_animating = false
 	game_manager.check_victory()

@@ -4,6 +4,7 @@ class_name SpellData
 enum TargetType { ALLY, ENEMY }
 
 @export var spell_name: String = ""
+@export var damage_type: UnitData.DamageType = UnitData.DamageType.MAGIC
 @export var description: String = ""
 @export var power: int = 5
 @export var spell_range: int = 3
