@@ -480,12 +480,19 @@ func set_highlight(state: String) -> void:
 			body.modulate = Color(1, 1, 1, 1)
 			highlight.polygon = PackedVector2Array()
 
-static func calc_damage(atk: int, target_unit: Unit, height_diff: int = 0, terrain_def_bonus: int = 0, dmg_type: int = 0) -> int:
+static func calc_damage(atk: int, target_unit: Unit, height_diff: int = 0, terrain_def_bonus: int = 0, dmg_type: int = 0) -> Dictionary:
 	var attack_power = atk + max(0, height_diff)
 	var defense_power = target_unit.get_effective_defense() + terrain_def_bonus + max(0, -height_diff)
 	var raw_damage = attack_power - defense_power
 	var multiplier = DAMAGE_MULTIPLIERS[target_unit.armor_type][dmg_type]
-	return max(1, int(raw_damage * multiplier))
+	var final_damage = max(1, int(raw_damage * multiplier))
+	return {
+		"damage": final_damage,
+		"atk_power": attack_power,
+		"def_power": defense_power,
+		"raw": raw_damage,
+		"multiplier": multiplier,
+	}
 
 func get_effective_defense() -> int:
 	return defense + (1 if is_defending else 0)
@@ -512,20 +519,24 @@ static func get_armor_type_name(arm_type: int) -> String:
 		UnitData.ArmorType.PLATE: return "plate"
 	return ""
 
-static func build_attack_log(attacker_name: String, target_name: String, damage: int, height_diff: int, terrain_def: int, dmg_type: int = -1, armor_type: int = -1) -> String:
-	var text = attacker_name + " attaque " + target_name + " (-" + str(damage) + " HP)"
-	if dmg_type >= 0 and armor_type >= 0:
-		var mult = DAMAGE_MULTIPLIERS[armor_type][dmg_type]
-		if mult != 1.0:
-			var label = "efficace" if mult > 1.0 else "résisté"
-			text += " [" + label + " x" + str(mult) + "]"
+static func build_attack_log(attacker_name: String, target_name: String, result: Dictionary, height_diff: int, terrain_def: int, dmg_type: int = -1, armor_type: int = -1) -> String:
+	var text = attacker_name + " attaque " + target_name + " → -" + str(result.damage) + " HP"
+	# Ligne de détail du calcul
+	var detail = "  ATK " + str(result.atk_power)
 	if height_diff > 0:
-		text += " [hauteur +" + str(height_diff) + " ATK]"
-	elif height_diff < 0:
-		text += " [hauteur +" + str(-height_diff) + " DEF]"
+		detail += " (+" + str(height_diff) + " hauteur)"
+	detail += " vs DEF " + str(result.def_power)
+	if height_diff < 0:
+		detail += " (+" + str(-height_diff) + " hauteur)"
 	if terrain_def > 0:
-		text += " [terrain +" + str(terrain_def) + " DEF]"
-	return text
+		detail += " (+" + str(terrain_def) + " terrain)"
+	detail += " = " + str(result.raw)
+	if dmg_type >= 0 and armor_type >= 0:
+		var mult = result.multiplier
+		detail += " × " + str(mult)
+		detail += " (" + get_damage_type_name(dmg_type) + " vs " + get_armor_type_name(armor_type) + ")"
+	detail += " = " + str(result.damage)
+	return text + "\n" + detail
 
 func activate_defend() -> void:
 	is_defending = true

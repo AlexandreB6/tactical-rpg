@@ -111,7 +111,7 @@ func _process_enemy(enemy: Unit) -> void:
 		var start_cell = enemy.grid_pos
 		var path = hex_grid.find_path(enemy.grid_pos, best_cell, blocked, enemy.move_range)
 		enemy.grid_pos = best_cell
-		combat_log.add_entry(enemy.unit_name + " se déplace")
+		combat_log.add_entry(enemy.unit_name + " se déplace", enemy.unit_name)
 		await enemy.move_along_path(path, start_cell)
 	# Attaque si à portée après déplacement
 	if enemy.can_attack_from(enemy.grid_pos, target.grid_pos, hex_grid):
@@ -126,7 +126,8 @@ func _choose_target(enemy: Unit, players: Array[Unit]) -> Unit:
 		var dist = hex_grid.hex_distance(enemy.grid_pos, player.grid_pos)
 		var height_diff = hex_grid.get_height_at(enemy.grid_pos) - hex_grid.get_height_at(player.grid_pos)
 		var terrain_def = hex_grid.get_terrain_def_bonus(player.grid_pos)
-		var damage = Unit.calc_damage(enemy.attack, player, height_diff, terrain_def, enemy.damage_type)
+		var calc = Unit.calc_damage(enemy.attack, player, height_diff, terrain_def, enemy.damage_type)
+		var damage = calc.damage
 		var score: float = 0.0
 		# Forte priorité : cible tuable en un coup
 		if damage >= player.hp:
@@ -148,10 +149,10 @@ func _choose_target(enemy: Unit, players: Array[Unit]) -> Unit:
 func _enemy_attack(enemy: Unit, target: Unit) -> void:
 	var height_diff = hex_grid.get_height_at(enemy.grid_pos) - hex_grid.get_height_at(target.grid_pos)
 	var terrain_def = hex_grid.get_terrain_def_bonus(target.grid_pos)
-	var damage = Unit.calc_damage(enemy.attack, target, height_diff, terrain_def, enemy.damage_type)
-	combat_log.add_entry(Unit.build_attack_log(enemy.unit_name, target.unit_name, damage, height_diff, terrain_def, enemy.damage_type, target.armor_type))
+	var result = Unit.calc_damage(enemy.attack, target, height_diff, terrain_def, enemy.damage_type)
+	combat_log.add_entry(Unit.build_attack_log(enemy.unit_name, target.unit_name, result, height_diff, terrain_def, enemy.damage_type, target.armor_type), enemy.unit_name)
 	await enemy.play_attack_anim(target.position)
-	await target.take_damage(damage)
+	await target.take_damage(result.damage)
 	check_victory()
 
 # Trouve la meilleure case de déplacement pour l'ennemi
@@ -220,7 +221,7 @@ func _try_enemy_offensive_spell(enemy: Unit, target: Unit) -> bool:
 		var spell_damage = max(1, int(spell_raw * spell_mult))
 		var height_diff = hex_grid.get_height_at(enemy.grid_pos) - hex_grid.get_height_at(target.grid_pos)
 		var terrain_def = hex_grid.get_terrain_def_bonus(target.grid_pos)
-		var phys_damage = Unit.calc_damage(enemy.attack, target, height_diff, terrain_def, enemy.damage_type)
+		var phys_damage = Unit.calc_damage(enemy.attack, target, height_diff, terrain_def, enemy.damage_type).damage
 		# Utiliser le sort si dégâts >= attaque physique ou pas à portée physique
 		if spell_damage >= phys_damage or not enemy.can_attack_from(enemy.grid_pos, target.grid_pos, hex_grid):
 			await _enemy_cast_spell(enemy, target, spell)
@@ -250,17 +251,21 @@ func _enemy_cast_spell(enemy: Unit, target: Unit, spell: SpellData) -> void:
 		effect.queue_free()
 	if spell.target_type == SpellData.TargetType.ALLY:
 		await target.heal(spell.power)
-		combat_log.add_entry(enemy.unit_name + " lance " + spell.spell_name + " sur " + target.unit_name + " (+" + str(spell.power) + " HP)")
+		combat_log.add_entry(enemy.unit_name + " lance " + spell.spell_name + " sur " + target.unit_name + " → +" + str(spell.power) + " HP", enemy.unit_name)
 	else:
 		var terrain_def = hex_grid.get_terrain_def_bonus(target.grid_pos)
-		var raw = spell.power - target.get_effective_defense() - terrain_def
+		var def_power = target.get_effective_defense() + terrain_def
+		var raw = spell.power - def_power
 		var multiplier = Unit.DAMAGE_MULTIPLIERS[target.armor_type][spell.damage_type]
 		var damage = max(1, int(raw * multiplier))
-		var log_text = enemy.unit_name + " lance " + spell.spell_name + " sur " + target.unit_name + " (-" + str(damage) + " HP)"
-		if multiplier != 1.0:
-			var label = "efficace" if multiplier > 1.0 else "résisté"
-			log_text += " [" + label + " x" + str(multiplier) + "]"
-		combat_log.add_entry(log_text)
+		var log_text = enemy.unit_name + " lance " + spell.spell_name + " sur " + target.unit_name + " → -" + str(damage) + " HP"
+		var detail = "  PWR " + str(spell.power) + " vs DEF " + str(def_power)
+		if terrain_def > 0:
+			detail += " (+" + str(terrain_def) + " terrain)"
+		detail += " = " + str(raw) + " × " + str(multiplier)
+		detail += " (" + Unit.get_damage_type_name(spell.damage_type) + " vs " + Unit.get_armor_type_name(target.armor_type) + ")"
+		detail += " = " + str(damage)
+		combat_log.add_entry(log_text + "\n" + detail, enemy.unit_name)
 		await target.take_damage(damage)
 		check_victory()
 
