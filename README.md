@@ -1,6 +1,6 @@
 # Tactical RPG
 
-<video src="https://github.com/AlexandreB6/tactical-rpg/releases/download/v0.1-demo/demo_h264.mp4" controls width="100%"></video>
+[![Demo](https://img.youtube.com/vi/t5PiGAfweDw/maxresdefault.jpg)](https://youtu.be/t5PiGAfweDw)
 
 Jeu de rôle tactique hexagonal développé en **Godot 4.6.1** (GDScript), inspiré de _Vandal Hearts_ et _Battle Brothers_. Combats au tour par tour sur une grille hex flat-top avec élévation, sorts, lignes de vue et IA ennemie. Projet personnel en cours de migration d'un rendu 2D isométrique vers un rendu **3D orthographique**.
 
